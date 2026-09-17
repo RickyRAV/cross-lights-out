@@ -3,9 +3,10 @@
 Welcome to the team project repository for the Cross-Platform Development course.
 
 ## Team Details
-* **Student 1**: Ricky Raveanu ([RickyRAV](https://github.com/RickyRAV))
-* **Student 2**: Nikola Petrovic ([Nikola-Petro](https://github.com/Nikola-Petro))
-* **App Name**: Lights Out
+
+- **Student 1**: Ricky Raveanu ([RickyRAV](https://github.com/RickyRAV))
+- **Student 2**: Nikola Petrovic ([Nikola-Petro](https://github.com/Nikola-Petro))
+- **App Name**: Lights Out
 
 ---
 
@@ -13,11 +14,11 @@ Welcome to the team project repository for the Cross-Platform Development course
 
 `main` is a protected branch:
 
-* No direct pushes — all changes land through a pull request.
-* At least 1 approval is required before merging, and a new approval is required if the branch gets updated after review.
-* All PR conversations must be resolved before merging.
-* History stays linear (no merge commits) — rebase your branch on `main` instead of merging it in.
-* Force-pushing to `main` and branch deletion are locked down to prevent accidental history loss.
+- No direct pushes — all changes land through a pull request.
+- At least 1 approval is required before merging, and a new approval is required if the branch gets updated after review.
+- All PR conversations must be resolved before merging.
+- History stays linear (no merge commits) — rebase your branch on `main` instead of merging it in.
+- Force-pushing to `main` and branch deletion are locked down to prevent accidental history loss.
 
 ## Branch Naming Convention
 
@@ -77,31 +78,52 @@ chore/rr/NOISSUE-repository-cleanup
 
 ---
 
+## Repository Layout
+
+```text
+apps/mobile/    Expo app
+apps/api/       Fastify + Drizzle + PostgreSQL backend
+packages/shared/ Types shared between mobile and api
+```
+
+## Backend Quickstart
+
+```bash
+cp .env.example .env
+docker compose up --build
+curl http://localhost:3000/api/v1/health
+```
+
+---
+
 ## Environment Setup Requirements
 
 Before running the application, ensure your mobile development tools are configured.
 
 ### 1. Android Emulator (Windows / Mac / Linux)
+
 1. Install **Android Studio**.
 2. Open Android Studio $\rightarrow$ **Virtual Device Manager** (AVD) and create a virtual device (e.g., Pixel 6 with API 34).
 3. Ensure your `ANDROID_HOME` environment variable is set:
-   * **Windows**: Set `ANDROID_HOME` to `C:\Users\<Your-Username>\AppData\Local\Android\Sdk` and add `%ANDROID_HOME%\platform-tools` and `%ANDROID_HOME%\emulator` to your `PATH`.
-   * **Mac**: Add `export ANDROID_HOME=$HOME/Library/Android/sdk` and `export PATH=$PATH:$ANDROID_HOME/emulator:$ANDROID_HOME/platform-tools` to your `~/.zshrc`.
+   - **Windows**: Set `ANDROID_HOME` to `C:\Users\<Your-Username>\AppData\Local\Android\Sdk` and add `%ANDROID_HOME%\platform-tools` and `%ANDROID_HOME%\emulator` to your `PATH`.
+   - **Mac**: Add `export ANDROID_HOME=$HOME/Library/Android/sdk` and `export PATH=$PATH:$ANDROID_HOME/emulator:$ANDROID_HOME/platform-tools` to your `~/.zshrc`.
 
 #### Managing Emulators via Terminal:
-* **List installed emulators**:
+
+- **List installed emulators**:
   ```bash
   emulator -list-avds
   ```
-* **Start an emulator from command line**:
+- **Start an emulator from command line**:
   ```bash
   emulator -avd <YOUR_AVD_NAME>
   ```
-  *(Example: `emulator -avd Pixel_6_API_34`)*
+  _(Example: `emulator -avd Pixel_6_API_34`)_
 
 ---
 
 ### 2. iOS Simulator (Mac Only)
+
 1. Install **Xcode** from the Mac App Store.
 2. Open Xcode once to accept the license agreement and install required component tools.
 3. Open Simulator via Xcode $\rightarrow$ Open Developer Tool $\rightarrow$ Simulator.
@@ -111,25 +133,28 @@ Before running the application, ensure your mobile development tools are configu
 ## How to Run the App
 
 1. Install local dependencies:
+
    ```bash
    pnpm install
    ```
 
 2. Launch on target platform:
 
-   * **Android Emulator**:
-     * Start your AVD (via Android Studio or `emulator -avd <NAME>`), then run:
+   - **Android Emulator**:
+     - Start your AVD (via Android Studio or `emulator -avd <NAME>`), then run:
+
      ```bash
      pnpm android
      ```
 
-   * **iOS Simulator** (Mac only):
+   - **iOS Simulator** (Mac only):
+
      ```bash
      pnpm ios
      ```
 
-   * **Physical Device (Expo Go Fallback)**:
-     * Scan the QR code using the **Expo Go** app:
+   - **Physical Device (Expo Go Fallback)**:
+     - Scan the QR code using the **Expo Go** app:
      ```bash
      pnpm start
      ```
@@ -138,7 +163,7 @@ Before running the application, ensure your mobile development tools are configu
 
 ## Troubleshooting
 
-* **Error: `adb command not found` / `Android SDK path not found`**
-  * **Fix**: Ensure `ANDROID_HOME` and the `platform-tools` + `emulator` folders are correctly added to your system `PATH` environment variable.
-* **Port 8081 is in use**
-  * **Fix**: Type `y` when prompted to switch to port 8082, or kill existing Node processes.
+- **Error: `adb command not found` / `Android SDK path not found`**
+  - **Fix**: Ensure `ANDROID_HOME` and the `platform-tools` + `emulator` folders are correctly added to your system `PATH` environment variable.
+- **Port 8081 is in use**
+  - **Fix**: Type `y` when prompted to switch to port 8082, or kill existing Node processes.

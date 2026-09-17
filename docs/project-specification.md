@@ -16,68 +16,75 @@
 ## 2.3 Core User Stories
 
 1. **As a fan, I want to see the upcoming race with a countdown to lockout, so I know how long I have to predict.**
+
    ```gherkin
-   GIVEN the app is opened, 
-   WHEN the Predict screen loads, 
-   THEN the next race's name, date, and a live countdown are shown, sourced from the Jolpica-F1 API. 
+   GIVEN the app is opened,
+   WHEN the Predict screen loads,
+   THEN the next race's name, date, and a live countdown are shown, sourced from the Jolpica-F1 API.
    Done when the countdown reflects the real current-season schedule.
    ```
 
 2. **As a fan, I want to submit a sealed top-5 prediction before lockout, so I can compete without anyone copying my picks.**
+
    ```gherkin
-   GIVEN the prediction window is open, 
-   WHEN I order 5 drivers and submit, 
-   THEN it's saved to the shared backend, becomes uneditable after lockout, 
-   AND stays hidden from friends until lockout passes (only a submitted/not-submitted flag is visible to them). 
+   GIVEN the prediction window is open,
+   WHEN I order 5 drivers and submit,
+   THEN it's saved to the shared backend, becomes uneditable after lockout,
+   AND stays hidden from friends until lockout passes (only a submitted/not-submitted flag is visible to them).
    Done when a submitted prediction survives an app restart and is never returned to another user pre-lockout.
    ```
 
 3. **As a fan, I want to see which friends have already submitted, so I know who's still deciding.**
-    ```gherkin
-   GIVEN the prediction window is open, 
-   WHEN I view the race screen, 
-   THEN each friend's submitted/not-yet status is shown without revealing picks. 
+
+   ```gherkin
+   GIVEN the prediction window is open,
+   WHEN I view the race screen,
+   THEN each friend's submitted/not-yet status is shown without revealing picks.
    Done when the status list updates as friends submit.
    ```
 
 4. **As a fan, I want a push notification before lockout, so I don't miss my chance to predict.**
-    ```gherkin
-   GIVEN notification permission is granted and I haven't predicted yet, 
-   WHEN lockout enters a configured reminder window, 
-   THEN I get a local notification. 
+
+   ```gherkin
+   GIVEN notification permission is granted and I haven't predicted yet,
+   WHEN lockout enters a configured reminder window,
+   THEN I get a local notification.
    Done when it fires on both Android and iOS, and permission-denied is handled without breaking the app.
    ```
 
 5. **As a fan, I want my prediction automatically scored against the real result, so I don't calculate points myself.**
-    ```gherkin
-   GIVEN a race has finished, 
-   WHEN the backend fetches the final classification from Jolpica-F1, 
-   THEN every prediction for that race is scored and stored. 
+
+   ```gherkin
+   GIVEN a race has finished,
+   WHEN the backend fetches the final classification from Jolpica-F1,
+   THEN every prediction for that race is scored and stored.
    Done when the scoring function is unit-tested against known predicted/actual pairs.
    ```
 
 6. **As a fan, I want a shared season leaderboard for my friend group, so I can see who's winning overall.**
+
    ```gherkin
-   GIVEN at least one race is scored, 
-   WHEN I open the Leaderboard screen, 
-   THEN members are ranked by total season points from the shared backend. 
+   GIVEN at least one race is scored,
+   WHEN I open the Leaderboard screen,
+   THEN members are ranked by total season points from the shared backend.
    Done when a newly graded race is reflected without any manual step.
    ```
 
 7. **As a fan, I want to browse the calendar, my history, and the last-synced leaderboard while offline, so the app stays useful without a connection.**
+
    ```gherkin
-   GIVEN I've previously loaded the app online, 
-   WHEN I open it offline, 
-   THEN cached data is still viewable with a "last updated" indicator, 
-   AND attempting to submit a prediction offline shows a clear "reconnect to submit" message instead of losing my draft or crashing. 
+   GIVEN I've previously loaded the app online,
+   WHEN I open it offline,
+   THEN cached data is still viewable with a "last updated" indicator,
+   AND attempting to submit a prediction offline shows a clear "reconnect to submit" message instead of losing my draft or crashing.
    Done when none of these screens ever show a blank/broken state offline.
    ```
 
 8. **As a fan, I want to join a friend group using an invite code, so my predictions count toward a leaderboard with people I know.**
    ```gherkin
-   GIVEN I have a valid invite code, 
-   WHEN I enter it in Settings, 
-   THEN I'm added to that group and appear on its leaderboard going forward. 
+   GIVEN I have a valid invite code,
+   WHEN I enter it in Settings,
+   THEN I'm added to that group and appear on its leaderboard going forward.
    Done when an invalid code is rejected without creating a membership.
    ```
 
@@ -125,6 +132,6 @@ The backend is built with Fastify and Drizzle on top of PostgreSQL, split into t
 
 ## 2.9 Changelog
 
-| Date | Change | Why |
-|---|---|---|
+| Date       | Change                      | Why                                                         |
+| ---------- | --------------------------- | ----------------------------------------------------------- |
 | 2026-09-17 | Initial draft specification | Concept and architecture finalized before development start |

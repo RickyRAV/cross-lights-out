@@ -1,0 +1,11 @@
+packages:
+  - apps/*
+  - packages/*
+
+# Expo SDK <= 53 does not support pnpm's default isolated node_modules layout
+# (native build errors + autolinking failures). Remove this only after an
+# Expo SDK 54+ upgrade.
+nodeLinker: hoisted
+
+onlyBuiltDependencies:
+  - esbuild

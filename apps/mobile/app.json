@@ -1,0 +1,18 @@
+{
+  "expo": {
+    "name": "Lights Out",
+    "slug": "lights-out",
+    "scheme": "lightsout",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "dark",
+    "assetBundlePatterns": ["**/*"],
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "cc.w11core.lightsout"
+    },
+    "android": {
+      "package": "cc.w11core.lightsout"
+    }
+  }
+}

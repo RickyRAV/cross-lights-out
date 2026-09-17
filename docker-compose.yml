@@ -1,0 +1,49 @@
+name: lightsout-dev
+
+services:
+  db:
+    image: postgres:18-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-lightsout}
+      POSTGRES_USER: ${POSTGRES_USER:-lightsout}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-lightsout}
+    ports:
+      - '${POSTGRES_PORT:-5434}:5432'
+    volumes:
+      # postgres:18 moved PGDATA and its declared VOLUME to /var/lib/postgresql
+      # (not .../data) — mounting the old path silently mounts nothing.
+      - lightsout_pgdata:/var/lib/postgresql
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-lightsout} -d ${POSTGRES_DB:-lightsout}']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile.dev
+    restart: unless-stopped
+    ports:
+      - '${API_PORT:-3000}:3000'
+    environment:
+      NODE_ENV: development
+      HOST: 0.0.0.0
+      PORT: 3000
+      LOG_LEVEL: ${LOG_LEVEL:-debug}
+      RUN_MIGRATIONS_ON_START: 'true'
+      DATABASE_URL: postgresql://${POSTGRES_USER:-lightsout}:${POSTGRES_PASSWORD:-lightsout}@db:5432/${POSTGRES_DB:-lightsout}
+    volumes:
+      - ./apps/api/src:/repo/apps/api/src
+      - ./apps/api/drizzle:/repo/apps/api/drizzle
+      - ./apps/api/drizzle.config.ts:/repo/apps/api/drizzle.config.ts
+      # @lightsout/shared resolves to its built dist/, not src/ — run
+      # `pnpm shared:dev` on the host to keep this rebuilding on change.
+      - ./packages/shared/dist:/repo/packages/shared/dist
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  lightsout_pgdata:

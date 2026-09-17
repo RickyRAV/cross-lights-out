@@ -26,9 +26,7 @@ export default function App() {
       <View style={styles.card}>
         <Text style={styles.title}>FHTW CPD — Expo Starter</Text>
         <Text style={styles.counterText}>Count: {state.count}</Text>
-        {state.lastUpdated && (
-          <Text style={styles.subtext}>Last update: {state.lastUpdated}</Text>
-        )}
+        {state.lastUpdated && <Text style={styles.subtext}>Last update: {state.lastUpdated}</Text>}
 
         <TouchableOpacity style={styles.button} onPress={increment}>
           <Text style={styles.buttonText}>Increment Counter</Text>
