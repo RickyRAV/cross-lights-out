@@ -1,4 +1,5 @@
 import Fastify, { type FastifyInstance } from 'fastify';
+import basicAuth from '@fastify/basic-auth';
 import cors from '@fastify/cors';
 import helmet from '@fastify/helmet';
 import swagger from '@fastify/swagger';
@@ -33,7 +34,20 @@ export async function buildApp(deps: AppDependencies): Promise<FastifyInstance> 
     transform: jsonSchemaTransform,
     openapi: { info: { title: 'Lights Out API', version: '0.1.0' } },
   });
-  await app.register(swaggerUi, { routePrefix: '/docs' });
+  // Scoped to this plugin only, so /api/v1/* stays open for the mobile app —
+  // just the docs UI (a full endpoint/schema map) needs credentials.
+  await app.register(async (docsApp) => {
+    await docsApp.register(basicAuth, {
+      validate: async (username, password) => {
+        if (username !== env.DOCS_USERNAME || password !== env.DOCS_PASSWORD) {
+          throw new Error('Unauthorized');
+        }
+      },
+      authenticate: true,
+    });
+    docsApp.addHook('onRequest', docsApp.basicAuth);
+    await docsApp.register(swaggerUi, { routePrefix: '/docs' });
+  });
   await app.register(apiRoutes(deps), { prefix: '/api/v1' });
 
   return app;

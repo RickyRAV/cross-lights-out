@@ -8,6 +8,8 @@ const envSchema = z.object({
   DATABASE_URL: z.url(),
   LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace']).default('info'),
   RUN_MIGRATIONS_ON_START: z.stringbool().default(true),
+  DOCS_USERNAME: z.string().default('admin'),
+  DOCS_PASSWORD: z.string().default('change_me_locally'),
 });
 
 const parsed = envSchema.safeParse(process.env);
