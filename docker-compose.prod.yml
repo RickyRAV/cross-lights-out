@@ -31,7 +31,7 @@ services:
     # Coolify's Docker Compose resource type has no separate UI field for
     # port publishing, so it's declared directly here. Traefik's dynamic
     # config (~/coolify/traefik-dynamic/lightsout-backend.yml) routes
-    # api.lightsout.w11core.cc to host.docker.internal:3003.
+    # lightsout-api.w11core.cc to host.docker.internal:3003.
     ports:
       - '3003:3000'
     healthcheck:
