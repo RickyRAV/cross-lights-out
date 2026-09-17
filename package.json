@@ -1,6 +1,7 @@
 {
   "name": "starter-react-native-expo",
   "version": "1.0.0",
+  "packageManager": "pnpm@10.28.2",
   "main": "expo/AppEntry.js",
   "scripts": {
     "start": "expo start",
