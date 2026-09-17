@@ -80,7 +80,7 @@ Feature: Backend service skeleton and deployment
 
 **Assignee: Ricky**
 
-*(implements user story 11)*
+_(implements user story 11)_
 
 ```gherkin
 Feature: Friend groups and lightweight auth
@@ -107,7 +107,7 @@ Feature: Friend groups and lightweight auth
 
 **Assignee: Ricky**
 
-*(implements user stories 2, 3, 4)*
+_(implements user stories 2, 3, 4)_
 
 ```gherkin
 Feature: Prediction submission and sealing
@@ -134,7 +134,7 @@ Feature: Prediction submission and sealing
 
 **Assignee: Ricky**
 
-*(implements user story 6 — core scoring logic, primary unit test target)*
+_(implements user story 6 — core scoring logic, primary unit test target)_
 
 ```gherkin
 Feature: Automatic prediction grading
@@ -161,7 +161,7 @@ Feature: Automatic prediction grading
 
 **Assignee: Ricky**
 
-*(implements user story 7)*
+_(implements user story 7)_
 
 ```gherkin
 Feature: Season leaderboard
@@ -206,7 +206,7 @@ Feature: Mobile application shell
 
 **Assignee: Nikola**
 
-*(implements user story 1)*
+_(implements user story 1)_
 
 ```gherkin
 Feature: Race calendar display
@@ -226,7 +226,7 @@ Feature: Race calendar display
 
 **Assignee: Nikola**
 
-*(implements user stories 2, 3)*
+_(implements user stories 2, 3)_
 
 ```gherkin
 Feature: Prediction submission UI
@@ -247,7 +247,7 @@ Feature: Prediction submission UI
 
 **Assignee: Nikola**
 
-*(implements user story 4)*
+_(implements user story 4)_
 
 ```gherkin
 Feature: Friend submission status
@@ -263,7 +263,7 @@ Feature: Friend submission status
 
 **Assignee: Nikola**
 
-*(implements user story 5 — required native feature)*
+_(implements user story 5 — required native feature)_
 
 ```gherkin
 Feature: Lockout reminder notifications
@@ -287,9 +287,9 @@ Feature: Lockout reminder notifications
 
 ## LO-13 Mobile: leaderboard screen
 
-**Assignee: Ricky** *(builds the screen consuming the leaderboard endpoint he owns from LO-7 — end-to-end ownership of one feature slice, and real mobile-app work toward even distribution)*
+**Assignee: Ricky** _(builds the screen consuming the leaderboard endpoint he owns from LO-7 — end-to-end ownership of one feature slice, and real mobile-app work toward even distribution)_
 
-*(implements user story 7)*
+_(implements user story 7)_
 
 ```gherkin
 Feature: Leaderboard screen
@@ -304,7 +304,7 @@ Feature: Leaderboard screen
 
 **Assignee: Nikola**
 
-*(implements user story 8)*
+_(implements user story 8)_
 
 ```gherkin
 Feature: Personal prediction history
@@ -319,7 +319,7 @@ Feature: Personal prediction history
 
 **Assignee: Ricky & Nikola (joint)**
 
-*(implements user stories 9, 10)*
+_(implements user stories 9, 10)_
 
 ```gherkin
 Feature: Offline behavior
@@ -339,9 +339,9 @@ Feature: Offline behavior
 
 ## LO-16 Mobile: join friend group UI
 
-**Assignee: Ricky** *(builds the screen consuming the invite-code endpoint he owns from LO-4 — same end-to-end rationale as LO-13)*
+**Assignee: Ricky** _(builds the screen consuming the invite-code endpoint he owns from LO-4 — same end-to-end rationale as LO-13)_
 
-*(implements user story 11)*
+_(implements user story 11)_
 
 ```gherkin
 Feature: Join friend group

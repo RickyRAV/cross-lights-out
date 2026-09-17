@@ -9,5 +9,8 @@ npm-debug.*
 *.mobileprovision
 *.orig.*
 web-build/
+build/
 .env*
+!.env.example
 .claude/
+docs/deployment.md

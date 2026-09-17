@@ -1,0 +1,14 @@
+node_modules
+**/node_modules
+.git
+.expo
+apps/mobile/App.tsx
+apps/mobile/index.js
+apps/mobile/metro.config.js
+apps/mobile/babel.config.js
+dist
+**/dist
+*.md
+docs
+.env*
+!.env.example
