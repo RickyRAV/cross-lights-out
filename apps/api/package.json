@@ -21,6 +21,7 @@
   "dependencies": {
     "@lightsout/shared": "workspace:*",
     "fastify": "5.12.5",
+    "@fastify/basic-auth": "6.3.0",
     "@fastify/cors": "11.3.0",
     "@fastify/helmet": "13.1.1",
     "@fastify/swagger": "9.8.1",
