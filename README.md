@@ -3,9 +3,9 @@
 Welcome to the team project repository for the Cross-Platform Development course.
 
 ## Team Details
-* **Student 1**: [Full Name] ([GitHub Handle])
-* **Student 2**: [Full Name] ([GitHub Handle])
-* **App Name**: [Your App Concept Name]
+* **Student 1**: Ricky Raveanu (RickyRAV)
+* **Student 2**: Nikola Petrovic (Nikola-Petro)
+* **App Name**: Lights Out
 
 ---
 
