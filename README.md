@@ -14,10 +14,10 @@ Welcome to the team project repository for the Cross-Platform Development course
 
 `main` is a protected branch:
 
-- No direct pushes — all changes land through a pull request.
+- No direct pushes, all changes land through a pull request.
 - At least 1 approval is required before merging, and a new approval is required if the branch gets updated after review.
 - All PR conversations must be resolved before merging.
-- History stays linear (no merge commits) — rebase your branch on `main` instead of merging it in.
+- History stays linear (no merge commits), rebase your branch on `main` instead of merging it in.
 - Force-pushing to `main` and branch deletion are locked down to prevent accidental history loss.
 
 ## Branch Naming Convention

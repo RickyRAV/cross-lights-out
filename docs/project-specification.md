@@ -20,7 +20,7 @@
    ```gherkin
    GIVEN the app is opened,
    WHEN the Predict screen loads,
-   THEN the next race's name, date, and a live countdown are shown, sourced from the Jolpica-F1 API.
+   THEN the next race's name, date, and a live countdown are shown, sourced from our own API.
    Done when the countdown reflects the real current-season schedule.
    ```
 
@@ -99,10 +99,10 @@ Key state: auth session, active friend group, cached calendar/results (TanStack 
 
 ## 2.5 API and Data Sources
 
-1. **Jolpica-F1** (`api.jolpi.ca/ergast/f1/`): a free REST API, no auth needed, compatible with the old Ergast API. We call it directly from the app for the race calendar and final results.
-2. **Self-hosted backend** (running on Ricky's own server): holds predictions, friend groups, and the leaderboard. The app reads and writes to it through TanStack Query. After a race ends, the backend fetches the result from Jolpica-F1 itself and grades everyone, so scoring isn't just happening on someone's phone.
+1. **Jolpica-F1** (`api.jolpi.ca/ergast/f1/`): a free REST API, no auth needed, compatible with the old Ergast API. Only our backend calls it, never the app directly. That way scoring can't be gamed client-side, and we're not stuck if Jolpica-F1 ever changes shape.
+2. **Self-hosted backend** (running on Ricky's own server): the app's only backend. It holds predictions, friend groups, and the leaderboard, and proxies and caches the race calendar and final results from Jolpica-F1 so the app never talks to a third party directly. The app reads and writes to it through TanStack Query. After a race ends, the backend fetches the result from Jolpica-F1 itself and grades everyone.
 
-Predict and Race Detail use both APIs. Leaderboard, History and Settings only talk to our backend. For auth we're using a simple self-issued JWT with email/password, nothing more since it's just our friend group and not a public app.
+Every screen talks only to our own backend. For auth we're using a simple self-issued JWT with email/password, nothing more since it's just our friend group and not a public app.
 
 ## 2.6 Native Feature Usage
 
@@ -126,7 +126,7 @@ docker-compose.yml        local dev (db + api)
 docker-compose.prod.yml   deployed on Ricky's own server
 ```
 
-Mobile's `store/` folder is Zustand, for local/UI state. The `hooks/` folder wraps TanStack Query calls to both Jolpica-F1 and our own API. Styling is done with NativeWind (Tailwind for React Native), which gives us full control over a custom dark racing theme instead of a default Material look. For components we don't want to build from scratch (forms, modals, lists), we're pulling in gluestack-ui's primitives, which copy the component code straight into our repo and get restyled with our own theme, rather than pulling in a locked dependency.
+Mobile's `store/` folder is Zustand, for local/UI state. The `hooks/` folder wraps TanStack Query calls to our own API. Styling is done with NativeWind (Tailwind for React Native), which gives us full control over a custom dark racing theme instead of a default Material look. For components we don't want to build from scratch (forms, modals, lists), we're pulling in gluestack-ui's primitives, which copy the component code straight into our repo and get restyled with our own theme, rather than pulling in a locked dependency.
 
 The backend is built with Fastify and Drizzle on top of PostgreSQL, split into three layers: routes/API, business logic, and data access, so each part has one clear job. Incoming request bodies are validated with Zod before they reach the business logic layer, so bad input gets rejected early with a clear error instead of failing deeper in the code. It's deployed as a container on Ricky's own server, using the same docker-compose setup for local development and production, so both of us develop against one shared, always-on backend instead of two separate local databases. Screens don't call `fetch` directly, they always go through a query or mutation hook. For testing, we're covering the scoring algorithm with unit tests and doing at least one component test on the leaderboard/prediction card.
 

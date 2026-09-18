@@ -21,8 +21,8 @@ Feature: Lights Out implementation stack and architecture
   Scenario: The two external data sources are clearly separated
     Given the app needs both public race data and shared multiplayer state
     When the architecture is documented
-    Then Jolpica-F1 is identified as the read-only race data source called directly from the app
-    And the self-hosted backend is identified as the source of truth for predictions, groups, and the leaderboard
+    Then Jolpica-F1 is identified as the read-only race data source, called only by our own backend
+    And the self-hosted backend is identified as the source of truth for predictions, groups, the leaderboard, and cached race data. The app never calls Jolpica-F1 directly
 
   Scenario: Follow-up work can implement against a stable baseline
     Given the architecture ticket has been completed
@@ -64,7 +64,7 @@ Feature: Backend service skeleton and deployment
     Then the backend can be built and started locally via docker-compose.yml
 
   Scenario: The backend is deployed hands-off on the home lab
-    Given docker-compose.prod.yml mirrors the TourPlanner deployment pattern
+    Given docker-compose.prod.yml is deployed on the home server
     When it is deployed via Coolify and routed through Traefik
     Then the backend and database run continuously without manual intervention
     And both developers' mobile apps can reach the same shared instance during development
@@ -134,7 +134,7 @@ Feature: Prediction submission and sealing
 
 **Assignee: Ricky**
 
-_(implements user story 6 — core scoring logic, primary unit test target)_
+_(implements user story 6, core scoring logic, primary unit test target)_
 
 ```gherkin
 Feature: Automatic prediction grading
@@ -213,11 +213,11 @@ Feature: Race calendar display
 
   Scenario: The next race is shown with a countdown
     Given the Predict screen is opened
-    When race data is fetched from Jolpica-F1
+    When race data is fetched from our own API
     Then the next race's name, date, and a live countdown to lockout are displayed
 
   Scenario: Loading and error states are handled
-    Given the Jolpica-F1 request is in flight or fails
+    Given the race data request is in flight or fails
     When the Predict screen renders
     Then a loading state or a clear error state is shown instead of a blank screen
 ```
@@ -263,7 +263,7 @@ Feature: Friend submission status
 
 **Assignee: Nikola**
 
-_(implements user story 5 — required native feature)_
+_(implements user story 5, required native feature)_
 
 ```gherkin
 Feature: Lockout reminder notifications
@@ -287,7 +287,7 @@ Feature: Lockout reminder notifications
 
 ## LO-13 Mobile: leaderboard screen
 
-**Assignee: Ricky** _(builds the screen consuming the leaderboard endpoint he owns from LO-7 — end-to-end ownership of one feature slice, and real mobile-app work toward even distribution)_
+**Assignee: Ricky** _(builds the screen consuming the leaderboard endpoint he owns from LO-7, end-to-end ownership of one feature slice, and real mobile-app work toward even distribution)_
 
 _(implements user story 7)_
 
@@ -339,7 +339,7 @@ Feature: Offline behavior
 
 ## LO-16 Mobile: join friend group UI
 
-**Assignee: Ricky** _(builds the screen consuming the invite-code endpoint he owns from LO-4 — same end-to-end rationale as LO-13)_
+**Assignee: Ricky** _(builds the screen consuming the invite-code endpoint he owns from LO-4, same end-to-end rationale as LO-13)_
 
 _(implements user story 11)_
 
@@ -374,4 +374,29 @@ Feature: Automated tests for Lights Out
     Given the test strategy has been implemented
     When either team member is asked in the final review
     Then the rationale for what was and wasn't tested can be explained clearly
+```
+
+## LO-18 Backend: race calendar proxy and cache
+
+**Assignee: Ricky**
+
+_(implements user story 1)_
+
+```gherkin
+Feature: Race calendar proxy and cache
+
+  Scenario: The app never calls Jolpica-F1 directly
+    Given the mobile app needs the upcoming race and countdown
+    When it requests race data
+    Then it calls our own API, not Jolpica-F1
+
+  Scenario: The backend serves cached race data
+    Given the backend has a cached copy of the race calendar
+    When a client requests it
+    Then the cached copy is returned instead of calling Jolpica-F1 on every request
+
+  Scenario: The cache refreshes when stale
+    Given the cached race calendar is older than its refresh window
+    When the next request comes in
+    Then the backend refetches from Jolpica-F1 and updates the cache before responding
 ```
