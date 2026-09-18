@@ -28,6 +28,11 @@ services:
       LOG_LEVEL: ${LOG_LEVEL:-info}
       RUN_MIGRATIONS_ON_START: 'true'
       DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_ISSUER: ${JWT_ISSUER}
+      JWT_AUDIENCE: ${JWT_AUDIENCE}
+      JWT_ACCESS_TOKEN_EXPIRY_MINUTES: ${JWT_ACCESS_TOKEN_EXPIRY_MINUTES:-15}
+      JWT_REFRESH_TOKEN_EXPIRY_DAYS: ${JWT_REFRESH_TOKEN_EXPIRY_DAYS:-7}
     # Coolify's Docker Compose resource type has no separate UI field for
     # port publishing, so it's declared directly here. Traefik's dynamic
     # config (~/coolify/traefik-dynamic/lightsout-backend.yml) routes

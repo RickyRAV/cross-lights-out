@@ -10,6 +10,11 @@ const envSchema = z.object({
   RUN_MIGRATIONS_ON_START: z.stringbool().default(true),
   DOCS_USERNAME: z.string().default('admin'),
   DOCS_PASSWORD: z.string().default('change_me_locally'),
+  JWT_SECRET: z.string().min(32),
+  JWT_ISSUER: z.string(),
+  JWT_AUDIENCE: z.string(),
+  JWT_ACCESS_TOKEN_EXPIRY_MINUTES: z.coerce.number().int().positive().default(15),
+  JWT_REFRESH_TOKEN_EXPIRY_DAYS: z.coerce.number().int().positive().default(7),
 });
 
 const parsed = envSchema.safeParse(process.env);
