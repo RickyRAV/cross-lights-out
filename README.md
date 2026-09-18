@@ -86,6 +86,8 @@ apps/api/       Fastify + Drizzle + PostgreSQL backend
 packages/shared/ Types shared between mobile and api
 ```
 
+See `docs/architecture.md` and `docs/data-model.md` for the full architecture, request flow, and planned database schema.
+
 ## Backend Quickstart
 
 ```bash
