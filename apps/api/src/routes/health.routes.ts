@@ -8,6 +8,7 @@ export function healthRoutes(healthService: HealthService): FastifyPluginAsync {
       '/health',
       {
         schema: {
+          tags: ['Health'],
           summary: 'Liveness and database connectivity probe',
           response: { 200: healthResponseSchema, 503: healthResponseSchema },
         },

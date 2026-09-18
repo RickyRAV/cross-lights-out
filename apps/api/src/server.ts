@@ -1,7 +1,10 @@
 import { env } from './config/env';
 import { createDb } from './db/client';
 import { runMigrations } from './db/migrate';
+import { createGroupsRepository } from './repositories/groups.repository';
 import { createHealthRepository } from './repositories/health.repository';
+import { createUsersRepository } from './repositories/users.repository';
+import { createGroupsService } from './services/groups.service';
 import { createHealthService } from './services/health.service';
 import { buildApp } from './app';
 
@@ -13,7 +16,9 @@ async function main(): Promise<void> {
   }
 
   const healthService = createHealthService({ healthRepository: createHealthRepository(db) });
-  const app = await buildApp({ healthService });
+  const usersRepository = createUsersRepository(db);
+  const groupsService = createGroupsService({ groupsRepository: createGroupsRepository(db) });
+  const app = await buildApp({ healthService, usersRepository, groupsService });
 
   for (const signal of ['SIGINT', 'SIGTERM'] as const) {
     process.on(signal, async () => {

@@ -34,6 +34,11 @@ services:
       LOG_LEVEL: ${LOG_LEVEL:-debug}
       RUN_MIGRATIONS_ON_START: 'true'
       DATABASE_URL: postgresql://${POSTGRES_USER:-lightsout}:${POSTGRES_PASSWORD:-lightsout}@db:5432/${POSTGRES_DB:-lightsout}
+      JWT_SECRET: ${JWT_SECRET:-dev_only_insecure_jwt_secret_change_before_ship}
+      JWT_ISSUER: ${JWT_ISSUER:-https://lightsout-api.w11core.cc}
+      JWT_AUDIENCE: ${JWT_AUDIENCE:-lights-out-mobile}
+      JWT_ACCESS_TOKEN_EXPIRY_MINUTES: ${JWT_ACCESS_TOKEN_EXPIRY_MINUTES:-15}
+      JWT_REFRESH_TOKEN_EXPIRY_DAYS: ${JWT_REFRESH_TOKEN_EXPIRY_DAYS:-7}
     volumes:
       - ./apps/api/src:/repo/apps/api/src
       - ./apps/api/drizzle:/repo/apps/api/drizzle

@@ -2,9 +2,11 @@
 
 ## Current
 
-Only `health_check` exists so far (LO-3, disposable, proves the migration pipeline runs, not a real domain table).
+`health_check` (LO-3, disposable, proves the migration pipeline runs, not a real domain table).
 
-## Planned (LO-4 through LO-7, plus LO-18)
+`users`, `friend_groups`, and `group_members` (LO-4) are live, matching the plan below. Auth is a self-issued JWT pair: a short-lived access token and a longer-lived refresh token, both stateless, no server-side session or refresh-token table. `POST /auth/refresh` just re-verifies the refresh token's signature and expiry and mints a new pair, so there's no revocation before a refresh token's own expiry.
+
+## Planned (LO-5 through LO-7, plus LO-18)
 
 Predictions are scoped to a user and a race, not to a group. A user predicts once per race, and that same prediction and score counts toward every friend group they're a member of. This avoids duplicating a prediction row per group.
 
