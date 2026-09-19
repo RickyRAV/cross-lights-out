@@ -194,3 +194,63 @@ describe('predictionsService.getGroupRacePredictions', () => {
     ]);
   });
 });
+
+describe('predictionsService.getMyPrediction', () => {
+  it('throws PredictionNotFound when the user has not predicted for that race', async () => {
+    const service = createPredictionsService({
+      predictionsRepository: fakePredictionsRepository(),
+      groupsRepository: fakeGroupsRepository(),
+      raceCalendarService: stubRaceCalendarServiceWithRace(undefined),
+    });
+
+    await expect(service.getMyPrediction('user-1', '2026-1')).rejects.toMatchObject({
+      statusCode: 404,
+      code: 'PredictionNotFound',
+    });
+  });
+
+  it('returns the full prediction, including a locked one', async () => {
+    const predictionsRepository = fakePredictionsRepository([
+      {
+        id: crypto.randomUUID(),
+        userId: 'user-1',
+        raceId: '2026-1',
+        predictedOrder: ['A', 'B', 'C', 'D', 'E'],
+        submittedAt: new Date(),
+        lockedAt: new Date(Date.now() - 60_000),
+      },
+    ]);
+    const service = createPredictionsService({
+      predictionsRepository,
+      groupsRepository: fakeGroupsRepository(),
+      raceCalendarService: stubRaceCalendarServiceWithRace(undefined),
+    });
+
+    const prediction = await service.getMyPrediction('user-1', '2026-1');
+
+    expect(prediction.predictedOrder).toEqual(['A', 'B', 'C', 'D', 'E']);
+  });
+
+  it("does not return another user's prediction for the same race", async () => {
+    const predictionsRepository = fakePredictionsRepository([
+      {
+        id: crypto.randomUUID(),
+        userId: 'user-2',
+        raceId: '2026-1',
+        predictedOrder: ['A', 'B', 'C', 'D', 'E'],
+        submittedAt: new Date(),
+        lockedAt: new Date(Date.now() + 60_000),
+      },
+    ]);
+    const service = createPredictionsService({
+      predictionsRepository,
+      groupsRepository: fakeGroupsRepository(),
+      raceCalendarService: stubRaceCalendarServiceWithRace(undefined),
+    });
+
+    await expect(service.getMyPrediction('user-1', '2026-1')).rejects.toMatchObject({
+      statusCode: 404,
+      code: 'PredictionNotFound',
+    });
+  });
+});

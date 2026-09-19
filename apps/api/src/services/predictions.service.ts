@@ -15,6 +15,7 @@ export interface PredictionsService {
     groupId: string,
     raceId: string,
   ): Promise<GroupRacePredictionsResponse>;
+  getMyPrediction(userId: string, raceId: string): Promise<PredictionResponse>;
 }
 
 export function createPredictionsService(deps: {
@@ -75,6 +76,14 @@ export function createPredictionsService(deps: {
           predictedOrder: !sealed && prediction ? prediction.predictedOrder : null,
         };
       });
+    },
+
+    async getMyPrediction(userId, raceId) {
+      const prediction = await deps.predictionsRepository.findByUserAndRace(userId, raceId);
+      if (!prediction) {
+        throw new AppError(404, 'PredictionNotFound', 'No prediction found for this race');
+      }
+      return toPredictionResponse(prediction);
     },
   };
 }

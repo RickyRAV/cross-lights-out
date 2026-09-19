@@ -54,6 +54,9 @@ export function stubPredictionsService(
     getGroupRacePredictions: async () => {
       throw new Error('not used in this test');
     },
+    getMyPrediction: async () => {
+      throw new Error('not used in this test');
+    },
     ...overrides,
   };
 }
