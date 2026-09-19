@@ -12,6 +12,7 @@ import { createUsersRepository } from './repositories/users.repository';
 import { createGradingService } from './services/grading.service';
 import { createGroupsService } from './services/groups.service';
 import { createHealthService } from './services/health.service';
+import { createLeaderboardService } from './services/leaderboard.service';
 import { createPredictionsService } from './services/predictions.service';
 import { createRaceCalendarService } from './services/race-calendar.service';
 import { buildApp } from './app';
@@ -40,19 +41,22 @@ async function main(): Promise<void> {
     groupsRepository,
     raceCalendarService,
   });
+  const scoresRepository = createScoresRepository(db);
   const gradingService = createGradingService({
     raceCalendarRepository,
     raceResultsRepository: createRaceResultsRepository(db),
     predictionsRepository,
-    scoresRepository: createScoresRepository(db),
+    scoresRepository,
     jolpicaClient,
   });
+  const leaderboardService = createLeaderboardService({ groupsRepository, scoresRepository });
   const app = await buildApp({
     healthService,
     usersRepository,
     groupsService,
     predictionsService,
     raceCalendarService,
+    leaderboardService,
   });
 
   const gradingInterval = setInterval(

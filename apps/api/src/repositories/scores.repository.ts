@@ -1,13 +1,20 @@
+import { eq, inArray, sql } from 'drizzle-orm';
 import type { Database } from '../db/client';
-import { scores } from '../db/schema';
+import { predictions, scores } from '../db/schema';
 
 export interface NewScore {
   predictionId: string;
   points: number;
 }
 
+export interface UserPoints {
+  userId: string;
+  totalPoints: number;
+}
+
 export interface ScoresRepository {
   insertMany(input: NewScore[]): Promise<void>;
+  sumPointsByUserIds(userIds: string[]): Promise<UserPoints[]>;
 }
 
 export function createScoresRepository(db: Database): ScoresRepository {
@@ -17,6 +24,21 @@ export function createScoresRepository(db: Database): ScoresRepository {
         return;
       }
       await db.insert(scores).values(input).onConflictDoNothing({ target: scores.predictionId });
+    },
+    async sumPointsByUserIds(userIds) {
+      if (userIds.length === 0) {
+        return [];
+      }
+      const rows = await db
+        .select({
+          userId: predictions.userId,
+          totalPoints: sql<string>`sum(${scores.points})`,
+        })
+        .from(scores)
+        .innerJoin(predictions, eq(predictions.id, scores.predictionId))
+        .where(inArray(predictions.userId, userIds))
+        .groupBy(predictions.userId);
+      return rows.map((row) => ({ userId: row.userId, totalPoints: Number(row.totalPoints) }));
     },
   };
 }
