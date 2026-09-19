@@ -378,6 +378,14 @@
                   "    console.log(\"Using upcoming race: \" + upcoming.raceId + \" (\" + upcoming.name + \")\");",
                   "} else {",
                   "    console.warn(\"No upcoming race found in the cached calendar, Submit Prediction will 409\");",
+                  "}",
+                  "",
+                  "var past = races.find(function (race) { return new Date(race.lockoutAt).getTime() <= now; });",
+                  "if (past) {",
+                  "    pm.collectionVariables.set(\"gradedRaceId\", past.raceId);",
+                  "    console.log(\"Using past race for the result check: \" + past.raceId + \" (\" + past.name + \")\");",
+                  "} else {",
+                  "    console.warn(\"No past race found in the cached calendar, the graded-result check will be skipped\");",
                   "}"
                 ],
                 "type": "text/javascript"
@@ -395,6 +403,70 @@
               "raw": "{{baseURL}}/api/v1/races",
               "host": ["{{baseURL}}"],
               "path": ["api", "v1", "races"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Race Result - Graded (User One)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var gradedRaceId = pm.collectionVariables.get(\"gradedRaceId\");",
+                  "if (!gradedRaceId) {",
+                  "    console.warn(\"Skipping: no past race available in this calendar snapshot\");",
+                  "} else {",
+                  "    pm.test(\"Status 200\", function () { pm.response.to.have.status(200); });",
+                  "    pm.test(\"actual order has 5 drivers\", function () {",
+                  "        pm.expect(pm.response.json().actualOrder.length).to.eql(5);",
+                  "    });",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{tokenOne}}", "type": "string" }]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseURL}}/api/v1/races/{{gradedRaceId}}/result",
+              "host": ["{{baseURL}}"],
+              "path": ["api", "v1", "races", "{{gradedRaceId}}", "result"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Race Result - Not Graded Yet (expect 404)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status 404\", function () { pm.response.to.have.status(404); });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{tokenOne}}", "type": "string" }]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseURL}}/api/v1/races/{{raceId}}/result",
+              "host": ["{{baseURL}}"],
+              "path": ["api", "v1", "races", "{{raceId}}", "result"]
             }
           },
           "response": []
@@ -589,7 +661,10 @@
                   "pm.test(\"Status 200\", function () { pm.response.to.have.status(200); });",
                   "pm.test(\"both members appear\", function () { pm.expect(leaderboard.length).to.eql(2); });",
                   "pm.test(\"nobody scored yet, race hasn't been graded\", function () {",
-                  "    leaderboard.forEach(function (entry) { pm.expect(entry.totalPoints).to.eql(0); });",
+                  "    leaderboard.forEach(function (entry) {",
+                  "        pm.expect(entry.totalPoints).to.eql(0);",
+                  "        pm.expect(entry.racesScored).to.eql(0);",
+                  "    });",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -755,6 +830,7 @@
     { "key": "groupId", "value": "", "type": "string" },
     { "key": "inviteCode", "value": "", "type": "string" },
     { "key": "raceId", "value": "", "type": "string" },
+    { "key": "gradedRaceId", "value": "", "type": "string" },
     { "key": "tokenOutsider", "value": "", "type": "string" }
   ]
 }
