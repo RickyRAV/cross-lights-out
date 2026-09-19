@@ -54,6 +54,18 @@
       "sourceType": "github",
       "skillPath": "plugins/expo/skills/expo-upgrade/SKILL.md",
       "computedHash": "2e7f5ffbeeb8e4d1e6d8441c30abe9d3817b6ab59bd19106bede903581680144"
+    },
+    "fastify-best-practices": {
+      "source": "mcollina/skills",
+      "sourceType": "github",
+      "skillPath": "skills/fastify/SKILL.md",
+      "computedHash": "cd479b552b22493a73eabcef8804f956847c8d3d9d0aaf051ccb01d22dc3247e"
+    },
+    "fastify-best-practise": {
+      "source": "TheCodePace/fastify-skills",
+      "sourceType": "github",
+      "skillPath": "skills/fastify-best-practise/SKILL.md",
+      "computedHash": "bf5978664b5fd794632e4bd829b3597998db650b6ab7b4cd8e7ddd890af98f2a"
     }
   }
 }
