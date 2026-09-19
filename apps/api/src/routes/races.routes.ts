@@ -12,7 +12,11 @@ export function racesRoutes(raceCalendarService: RaceCalendarService): FastifyPl
           tags: ['Races'],
           security: [{ bearerAuth: [] }],
           summary: 'List the current season race calendar',
-          response: { 200: raceListResponseSchema, 401: errorResponseSchema },
+          response: {
+            200: raceListResponseSchema,
+            401: errorResponseSchema,
+            429: errorResponseSchema,
+          },
         },
       },
       async (_request, reply) => {

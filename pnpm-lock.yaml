@@ -44,6 +44,9 @@ importers:
       '@fastify/jwt':
         specifier: 10.2.2
         version: 10.2.2
+      '@fastify/rate-limit':
+        specifier: 11.2.0
+        version: 11.2.0
       '@fastify/swagger':
         specifier: 9.8.1
         version: 9.8.1
@@ -1475,6 +1478,9 @@ packages:
 
   '@fastify/proxy-addr@5.1.1':
     resolution: {integrity: sha512-zv07Y9GEuDsJPegZoDFd4SDWaZOW8N2pa0GSrYmKpId/tjt1Hgo3BjZBVjdVpfVrHaA+Qv5jawtS2O50J5xM9g==}
+
+  '@fastify/rate-limit@11.2.0':
+    resolution: {integrity: sha512-X7osJd4XSvMoejYrnJkSZYYjY1eNYoBqhjlzf1RakC2204qExFqZFTKj5+T7VuzA/iUI9Z3UoSqQRkB2HpG0oQ==}
 
   '@fastify/send@4.1.1':
     resolution: {integrity: sha512-BYo+EiaKwlxH+WetGk6hAs1d39iP0y1gqB8lGF/qwkJ9ZZ/cBY1vx5NvExb9Sc3yRMFjD5X4Eyh4e4+TzRkzdw==}
@@ -3470,6 +3476,10 @@ packages:
 
   invariant@2.2.4:
     resolution: {integrity: sha512-phJfQVBuaJM5raOpJjSfkiD6BpbCE4Ns//LaXl6wGYtUBY83nWS6Rf9tXm2e8VaK60JEjYldbPif/A2B1C2gNA==}
+
+  ip-address@10.7.2:
+    resolution: {integrity: sha512-7H/2gFSIitxc0hG3nOI1glS8QLo/EHBFFLk8vEUjXY/xu0AdL8jZ9U1IzO2PUm0d2D/ofQcAifb0g6OBkt8U7w==}
+    engines: {node: '>= 12'}
 
   ip-regex@2.1.0:
     resolution: {integrity: sha512-58yWmlHpp7VYfcdTwMTvwMmqx/Elfxjd9RXTDyMsbL7lLWmhMylLEqiYVLKuLzOZqVgiWXD9MfR62Vv89VRxkw==}
@@ -7232,6 +7242,13 @@ snapshots:
       '@fastify/forwarded': 3.0.2
       ipaddr.js: 2.5.0
 
+  '@fastify/rate-limit@11.2.0':
+    dependencies:
+      '@lukeed/ms': 2.0.2
+      fastify-plugin: 6.0.0
+      ip-address: 10.7.2
+      toad-cache: 3.7.4
+
   '@fastify/send@4.1.1':
     dependencies:
       '@lukeed/ms': 2.0.2
@@ -9606,6 +9623,8 @@ snapshots:
   invariant@2.2.4:
     dependencies:
       loose-envify: 1.4.0
+
+  ip-address@10.7.2: {}
 
   ip-regex@2.1.0: {}
 

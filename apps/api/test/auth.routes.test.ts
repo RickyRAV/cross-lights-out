@@ -81,6 +81,34 @@ describe('POST /api/v1/auth/login', () => {
   });
 });
 
+describe('POST /api/v1/auth/login rate limiting', () => {
+  it('returns 429 after 5 attempts within the window', async () => {
+    const existing: User = {
+      id: crypto.randomUUID(),
+      email: 'racer@example.com',
+      passwordHash: await hashPassword('password123'),
+      displayName: 'Racer',
+      createdAt: new Date(),
+    };
+    const app = await buildTestApp({ usersRepository: fakeUsersRepository([existing]) });
+    const attempt = () =>
+      app.inject({
+        method: 'POST',
+        url: '/api/v1/auth/login',
+        payload: { email: 'racer@example.com', password: 'wrong-password' },
+      });
+
+    for (let i = 0; i < 5; i += 1) {
+      const response = await attempt();
+      expect(response.statusCode).toBe(401);
+    }
+
+    const limited = await attempt();
+    expect(limited.statusCode).toBe(429);
+    expect(limited.json().error).toBe('Too Many Requests');
+  });
+});
+
 describe('POST /api/v1/auth/refresh', () => {
   it('exchanges a valid refresh token for a new token pair', async () => {
     const app = await buildTestApp();
