@@ -35,6 +35,9 @@ services:
       JWT_REFRESH_TOKEN_EXPIRY_DAYS: ${JWT_REFRESH_TOKEN_EXPIRY_DAYS:-7}
       JOLPICA_BASE_URL: ${JOLPICA_BASE_URL:-https://api.jolpi.ca/ergast/f1}
       RACE_CALENDAR_CACHE_TTL_HOURS: ${RACE_CALENDAR_CACHE_TTL_HOURS:-24}
+      # Safe only because port 3003 isn't forwarded on the router, only
+      # reachable from the home LAN, not the public internet.
+      TRUST_PROXY: ${TRUST_PROXY:-true}
     # Coolify's Docker Compose resource type has no separate UI field for
     # port publishing, so it's declared directly here. Traefik's dynamic
     # config (~/coolify/traefik-dynamic/lightsout-backend.yml) routes
