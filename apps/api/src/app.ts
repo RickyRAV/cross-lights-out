@@ -17,6 +17,8 @@ import { apiRoutes } from './routes';
 import { createAuthService } from './services/auth.service';
 import type { GroupsService } from './services/groups.service';
 import type { HealthService } from './services/health.service';
+import type { PredictionsService } from './services/predictions.service';
+import type { RaceCalendarService } from './services/race-calendar.service';
 import { createTokenService } from './services/token.service';
 import type { UsersRepository } from './repositories/users.repository';
 
@@ -24,6 +26,8 @@ export interface AppDependencies {
   healthService: HealthService;
   usersRepository: UsersRepository;
   groupsService: GroupsService;
+  predictionsService: PredictionsService;
+  raceCalendarService: RaceCalendarService;
 }
 
 export async function buildApp(deps: AppDependencies): Promise<FastifyInstance> {
@@ -60,6 +64,8 @@ export async function buildApp(deps: AppDependencies): Promise<FastifyInstance> 
         { name: 'Health', description: 'Liveness and readiness' },
         { name: 'Auth', description: 'Account creation and JWT issuance' },
         { name: 'Groups', description: 'Friend groups and invite codes' },
+        { name: 'Races', description: 'Cached race calendar, proxied from Jolpica-F1' },
+        { name: 'Predictions', description: 'Sealed prediction submission and group status' },
       ],
       components: {
         securitySchemes: {

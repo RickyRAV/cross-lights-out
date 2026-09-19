@@ -15,6 +15,13 @@
       "when": 1789767825202,
       "tag": "0001_cuddly_iron_patriot",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1789826353443,
+      "tag": "0002_pale_paper_doll",
+      "breakpoints": true
     }
   ]
 }

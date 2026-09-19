@@ -1,7 +1,9 @@
 import {
   createGroupRequestSchema,
+  errorResponseSchema,
   groupResponseSchema,
   joinGroupRequestSchema,
+  validationErrorResponseSchema,
 } from '@lightsout/shared';
 import type { FastifyPluginAsyncZod } from 'fastify-type-provider-zod';
 import type { GroupsService } from '../services/groups.service';
@@ -17,7 +19,11 @@ export function groupsRoutes(groupsService: GroupsService): FastifyPluginAsyncZo
           security: [{ bearerAuth: [] }],
           summary: 'Create a friend group',
           body: createGroupRequestSchema,
-          response: { 201: groupResponseSchema },
+          response: {
+            201: groupResponseSchema,
+            400: validationErrorResponseSchema,
+            401: errorResponseSchema,
+          },
         },
       },
       async (request, reply) => {
@@ -35,7 +41,12 @@ export function groupsRoutes(groupsService: GroupsService): FastifyPluginAsyncZo
           security: [{ bearerAuth: [] }],
           summary: 'Join a friend group with an invite code',
           body: joinGroupRequestSchema,
-          response: { 200: groupResponseSchema },
+          response: {
+            200: groupResponseSchema,
+            400: validationErrorResponseSchema,
+            401: errorResponseSchema,
+            404: errorResponseSchema,
+          },
         },
       },
       async (request, reply) => {

@@ -1,58 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { buildApp } from '../src/app';
 import { hashPassword } from '../src/lib/password';
-import type { GroupsService } from '../src/services/groups.service';
-import type { HealthService } from '../src/services/health.service';
-import type { User, UsersRepository } from '../src/repositories/users.repository';
-
-function stubHealthService(): HealthService {
-  return {
-    check: async () => ({
-      status: 'ok',
-      timestamp: new Date().toISOString(),
-      service: 'lights-out-api',
-      version: '0.1.0',
-      database: 'up',
-    }),
-  };
-}
-
-function stubGroupsService(): GroupsService {
-  return {
-    createGroup: async () => {
-      throw new Error('not used in this test');
-    },
-    joinGroup: async () => {
-      throw new Error('not used in this test');
-    },
-  };
-}
-
-function fakeUsersRepository(seed: User[] = []): UsersRepository {
-  const store = [...seed];
-  return {
-    async create(user) {
-      const row: User = { id: crypto.randomUUID(), createdAt: new Date(), ...user };
-      store.push(row);
-      return row;
-    },
-    async findByEmail(email) {
-      return store.find((user) => user.email === email);
-    },
-  };
-}
-
-async function buildTestApp(usersRepository: UsersRepository) {
-  return buildApp({
-    healthService: stubHealthService(),
-    groupsService: stubGroupsService(),
-    usersRepository,
-  });
-}
+import type { User } from '../src/repositories/users.repository';
+import { buildTestApp, fakeUsersRepository } from './helpers';
 
 describe('POST /api/v1/auth/register', () => {
   it('creates an account and returns a token pair', async () => {
-    const app = await buildTestApp(fakeUsersRepository());
+    const app = await buildTestApp();
 
     const response = await app.inject({
       method: 'POST',
@@ -75,7 +28,7 @@ describe('POST /api/v1/auth/register', () => {
       displayName: 'Racer',
       createdAt: new Date(),
     };
-    const app = await buildTestApp(fakeUsersRepository([existing]));
+    const app = await buildTestApp({ usersRepository: fakeUsersRepository([existing]) });
 
     const response = await app.inject({
       method: 'POST',
@@ -96,7 +49,7 @@ describe('POST /api/v1/auth/login', () => {
       displayName: 'Racer',
       createdAt: new Date(),
     };
-    const app = await buildTestApp(fakeUsersRepository([existing]));
+    const app = await buildTestApp({ usersRepository: fakeUsersRepository([existing]) });
 
     const response = await app.inject({
       method: 'POST',
@@ -116,7 +69,7 @@ describe('POST /api/v1/auth/login', () => {
       displayName: 'Racer',
       createdAt: new Date(),
     };
-    const app = await buildTestApp(fakeUsersRepository([existing]));
+    const app = await buildTestApp({ usersRepository: fakeUsersRepository([existing]) });
 
     const response = await app.inject({
       method: 'POST',
@@ -130,7 +83,7 @@ describe('POST /api/v1/auth/login', () => {
 
 describe('POST /api/v1/auth/refresh', () => {
   it('exchanges a valid refresh token for a new token pair', async () => {
-    const app = await buildTestApp(fakeUsersRepository());
+    const app = await buildTestApp();
 
     const registerResponse = await app.inject({
       method: 'POST',
@@ -150,7 +103,7 @@ describe('POST /api/v1/auth/refresh', () => {
   });
 
   it('rejects an access token used as a refresh token', async () => {
-    const app = await buildTestApp(fakeUsersRepository());
+    const app = await buildTestApp();
 
     const registerResponse = await app.inject({
       method: 'POST',

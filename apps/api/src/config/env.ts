@@ -15,6 +15,8 @@ const envSchema = z.object({
   JWT_AUDIENCE: z.string(),
   JWT_ACCESS_TOKEN_EXPIRY_MINUTES: z.coerce.number().int().positive().default(15),
   JWT_REFRESH_TOKEN_EXPIRY_DAYS: z.coerce.number().int().positive().default(7),
+  JOLPICA_BASE_URL: z.url().default('https://api.jolpi.ca/ergast/f1'),
+  RACE_CALENDAR_CACHE_TTL_HOURS: z.coerce.number().int().positive().default(24),
 });
 
 const parsed = envSchema.safeParse(process.env);
