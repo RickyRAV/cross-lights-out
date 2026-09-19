@@ -13,6 +13,9 @@ export const groupResponseSchema = z.object({
 });
 export type GroupResponse = z.infer<typeof groupResponseSchema>;
 
+export const groupListResponseSchema = z.array(groupResponseSchema);
+export type GroupListResponse = z.infer<typeof groupListResponseSchema>;
+
 export const joinGroupRequestSchema = z.object({
   inviteCode: z.string().min(1),
 });

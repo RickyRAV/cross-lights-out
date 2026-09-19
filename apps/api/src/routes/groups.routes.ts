@@ -1,6 +1,7 @@
 import {
   createGroupRequestSchema,
   errorResponseSchema,
+  groupListResponseSchema,
   groupResponseSchema,
   joinGroupRequestSchema,
   validationErrorResponseSchema,
@@ -54,6 +55,27 @@ export function groupsRoutes(groupsService: GroupsService): FastifyPluginAsyncZo
       async (request, reply) => {
         const group = await groupsService.joinGroup(request.user.sub, request.body.inviteCode);
         return reply.status(200).send(group);
+      },
+    );
+
+    app.get(
+      '/groups',
+      {
+        preHandler: [app.authenticate],
+        schema: {
+          tags: ['Groups'],
+          security: [{ bearerAuth: [] }],
+          summary: 'List the friend groups the current user belongs to',
+          response: {
+            200: groupListResponseSchema,
+            401: errorResponseSchema,
+            429: errorResponseSchema,
+          },
+        },
+      },
+      async (request, reply) => {
+        const groups = await groupsService.listGroups(request.user.sub);
+        return reply.status(200).send(groups);
       },
     );
   };

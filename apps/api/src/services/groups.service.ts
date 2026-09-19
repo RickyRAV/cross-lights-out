@@ -6,6 +6,7 @@ import type { Group, GroupsRepository } from '../repositories/groups.repository'
 export interface GroupsService {
   createGroup(userId: string, name: string): Promise<GroupResponse>;
   joinGroup(userId: string, inviteCode: string): Promise<GroupResponse>;
+  listGroups(userId: string): Promise<GroupResponse[]>;
 }
 
 export function createGroupsService(deps: { groupsRepository: GroupsRepository }): GroupsService {
@@ -27,6 +28,11 @@ export function createGroupsService(deps: { groupsRepository: GroupsRepository }
       }
       await deps.groupsRepository.addMember(group.id, userId);
       return toGroupResponse(group);
+    },
+
+    async listGroups(userId) {
+      const groups = await deps.groupsRepository.findByUserId(userId);
+      return groups.map(toGroupResponse);
     },
   };
 }

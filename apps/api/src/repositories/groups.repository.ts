@@ -28,6 +28,7 @@ export interface GroupsRepository {
   addMember(groupId: string, userId: string): Promise<void>;
   isMember(groupId: string, userId: string): Promise<boolean>;
   listMembers(groupId: string): Promise<GroupMember[]>;
+  findByUserId(userId: string): Promise<Group[]>;
 }
 
 export function createGroupsRepository(db: Database): GroupsRepository {
@@ -61,6 +62,19 @@ export function createGroupsRepository(db: Database): GroupsRepository {
         .from(groupMembers)
         .innerJoin(users, eq(users.id, groupMembers.userId))
         .where(eq(groupMembers.groupId, groupId));
+    },
+    async findByUserId(userId) {
+      return db
+        .select({
+          id: friendGroups.id,
+          name: friendGroups.name,
+          inviteCode: friendGroups.inviteCode,
+          createdBy: friendGroups.createdBy,
+          createdAt: friendGroups.createdAt,
+        })
+        .from(groupMembers)
+        .innerJoin(friendGroups, eq(friendGroups.id, groupMembers.groupId))
+        .where(eq(groupMembers.userId, userId));
     },
   };
 }
