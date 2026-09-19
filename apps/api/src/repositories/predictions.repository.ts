@@ -23,6 +23,7 @@ export interface PredictionsRepository {
   upsert(input: UpsertPrediction): Promise<Prediction>;
   findByUserAndRace(userId: string, raceId: string): Promise<Prediction | undefined>;
   findByRaceForUsers(raceId: string, userIds: string[]): Promise<Prediction[]>;
+  findByRaceId(raceId: string): Promise<Prediction[]>;
 }
 
 export function createPredictionsRepository(db: Database): PredictionsRepository {
@@ -58,6 +59,9 @@ export function createPredictionsRepository(db: Database): PredictionsRepository
         .select()
         .from(predictions)
         .where(and(eq(predictions.raceId, raceId), inArray(predictions.userId, userIds)));
+    },
+    async findByRaceId(raceId) {
+      return db.select().from(predictions).where(eq(predictions.raceId, raceId));
     },
   };
 }

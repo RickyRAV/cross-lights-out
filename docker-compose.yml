@@ -41,6 +41,7 @@ services:
       JWT_REFRESH_TOKEN_EXPIRY_DAYS: ${JWT_REFRESH_TOKEN_EXPIRY_DAYS:-7}
       JOLPICA_BASE_URL: ${JOLPICA_BASE_URL:-https://api.jolpi.ca/ergast/f1}
       RACE_CALENDAR_CACHE_TTL_HOURS: ${RACE_CALENDAR_CACHE_TTL_HOURS:-24}
+      GRADING_INTERVAL_MINUTES: ${GRADING_INTERVAL_MINUTES:-30}
       # No reverse proxy in front locally, unlike prod behind Traefik.
       TRUST_PROXY: ${TRUST_PROXY:-false}
     volumes:
