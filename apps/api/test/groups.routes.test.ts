@@ -86,3 +86,55 @@ describe('POST /api/v1/groups/join', () => {
     expect(response.json().inviteCode).toBe('ABCD1234');
   });
 });
+
+describe('GET /api/v1/groups', () => {
+  it('rejects a request without a token', async () => {
+    const app = await buildTestApp();
+
+    const response = await app.inject({ method: 'GET', url: '/api/v1/groups' });
+
+    expect(response.statusCode).toBe(401);
+  });
+
+  it('lists the groups the current user belongs to', async () => {
+    const group = {
+      id: crypto.randomUUID(),
+      name: 'Paddock Club',
+      inviteCode: 'ABCD1234',
+      createdAt: new Date().toISOString(),
+    };
+    const app = await buildTestApp({
+      groupsService: stubGroupsService({
+        listGroups: async () => [group],
+      }),
+    });
+    const accessToken = await registerAndGetAccessToken(app);
+
+    const response = await app.inject({
+      method: 'GET',
+      url: '/api/v1/groups',
+      headers: { authorization: `Bearer ${accessToken}` },
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.json()).toEqual([group]);
+  });
+
+  it('returns an empty array when the user has no groups', async () => {
+    const app = await buildTestApp({
+      groupsService: stubGroupsService({
+        listGroups: async () => [],
+      }),
+    });
+    const accessToken = await registerAndGetAccessToken(app);
+
+    const response = await app.inject({
+      method: 'GET',
+      url: '/api/v1/groups',
+      headers: { authorization: `Bearer ${accessToken}` },
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.json()).toEqual([]);
+  });
+});

@@ -40,6 +40,9 @@ export function stubGroupsService(overrides: Partial<GroupsService> = {}): Group
     joinGroup: async () => {
       throw new Error('not used in this test');
     },
+    listGroups: async () => {
+      throw new Error('not used in this test');
+    },
     ...overrides,
   };
 }
