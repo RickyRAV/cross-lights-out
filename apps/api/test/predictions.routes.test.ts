@@ -122,3 +122,57 @@ describe('GET /api/v1/groups/:groupId/races/:raceId/predictions', () => {
     ]);
   });
 });
+
+describe('GET /api/v1/predictions/:raceId', () => {
+  it('rejects a request without a token', async () => {
+    const app = await buildTestApp();
+
+    const response = await app.inject({ method: 'GET', url: '/api/v1/predictions/2026-1' });
+
+    expect(response.statusCode).toBe(401);
+  });
+
+  it("returns the current user's own prediction", async () => {
+    const app = await buildTestApp({
+      predictionsService: stubPredictionsService({
+        getMyPrediction: async (_userId, raceId) => ({
+          id: crypto.randomUUID(),
+          raceId,
+          predictedOrder: ['A', 'B', 'C', 'D', 'E'],
+          submittedAt: new Date().toISOString(),
+          lockedAt: new Date(Date.now() + 60_000).toISOString(),
+        }),
+      }),
+    });
+    const accessToken = await registerAndGetAccessToken(app);
+
+    const response = await app.inject({
+      method: 'GET',
+      url: '/api/v1/predictions/2026-1',
+      headers: { authorization: `Bearer ${accessToken}` },
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.json().predictedOrder).toEqual(['A', 'B', 'C', 'D', 'E']);
+  });
+
+  it('returns 404 when the user has not predicted for that race', async () => {
+    const app = await buildTestApp({
+      predictionsService: stubPredictionsService({
+        getMyPrediction: async () => {
+          throw new AppError(404, 'PredictionNotFound', 'No prediction found for this race');
+        },
+      }),
+    });
+    const accessToken = await registerAndGetAccessToken(app);
+
+    const response = await app.inject({
+      method: 'GET',
+      url: '/api/v1/predictions/2026-1',
+      headers: { authorization: `Bearer ${accessToken}` },
+    });
+
+    expect(response.statusCode).toBe(404);
+    expect(response.json().error).toBe('PredictionNotFound');
+  });
+});

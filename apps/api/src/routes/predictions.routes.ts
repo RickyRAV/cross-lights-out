@@ -14,6 +14,10 @@ const groupRaceParamsSchema = z.object({
   raceId: z.string().min(1),
 });
 
+const raceParamsSchema = z.object({
+  raceId: z.string().min(1),
+});
+
 export function predictionsRoutes(predictionsService: PredictionsService): FastifyPluginAsyncZod {
   return async (app) => {
     app.post(
@@ -70,6 +74,30 @@ export function predictionsRoutes(predictionsService: PredictionsService): Fasti
           raceId,
         );
         return reply.status(200).send(statuses);
+      },
+    );
+
+    app.get(
+      '/predictions/:raceId',
+      {
+        preHandler: [app.authenticate],
+        schema: {
+          tags: ['Predictions'],
+          security: [{ bearerAuth: [] }],
+          summary: "Fetch the current user's own prediction for a race, locked or not",
+          params: raceParamsSchema,
+          response: {
+            200: predictionResponseSchema,
+            401: errorResponseSchema,
+            404: errorResponseSchema,
+            429: errorResponseSchema,
+          },
+        },
+      },
+      async (request, reply) => {
+        const { raceId } = request.params;
+        const prediction = await predictionsService.getMyPrediction(request.user.sub, raceId);
+        return reply.status(200).send(prediction);
       },
     );
   };
