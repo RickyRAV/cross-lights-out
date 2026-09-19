@@ -16,8 +16,18 @@ describe('GET /api/v1/groups/:groupId/leaderboard', () => {
 
   it('returns the group standings ranked by total points', async () => {
     const groupId = crypto.randomUUID();
-    const first = { userId: crypto.randomUUID(), displayName: 'Racer One', totalPoints: 30 };
-    const second = { userId: crypto.randomUUID(), displayName: 'Racer Two', totalPoints: 11 };
+    const first = {
+      userId: crypto.randomUUID(),
+      displayName: 'Racer One',
+      totalPoints: 30,
+      racesScored: 3,
+    };
+    const second = {
+      userId: crypto.randomUUID(),
+      displayName: 'Racer Two',
+      totalPoints: 11,
+      racesScored: 2,
+    };
     const app = await buildTestApp({
       leaderboardService: stubLeaderboardService({
         getLeaderboard: async () => [first, second],

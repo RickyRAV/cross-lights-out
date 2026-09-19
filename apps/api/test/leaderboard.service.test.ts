@@ -48,33 +48,35 @@ describe('leaderboardService.getLeaderboard', () => {
         { userId: 'user-2', displayName: 'Racer Two' },
       ]),
       scoresRepository: fakeScoresRepository([
-        { userId: 'user-1', totalPoints: 11 },
-        { userId: 'user-2', totalPoints: 30 },
+        { userId: 'user-1', totalPoints: 11, racesScored: 2 },
+        { userId: 'user-2', totalPoints: 30, racesScored: 3 },
       ]),
     });
 
     const leaderboard = await service.getLeaderboard('user-1', 'group-1');
 
     expect(leaderboard).toEqual([
-      { userId: 'user-2', displayName: 'Racer Two', totalPoints: 30 },
-      { userId: 'user-1', displayName: 'Racer One', totalPoints: 11 },
+      { userId: 'user-2', displayName: 'Racer Two', totalPoints: 30, racesScored: 3 },
+      { userId: 'user-1', displayName: 'Racer One', totalPoints: 11, racesScored: 2 },
     ]);
   });
 
-  it('includes members with no graded predictions yet at zero points', async () => {
+  it('includes members with no graded predictions yet at zero points and zero races scored', async () => {
     const service = createLeaderboardService({
       groupsRepository: fakeGroupsRepository([
         { userId: 'user-1', displayName: 'Racer One' },
         { userId: 'user-2', displayName: 'Racer Two' },
       ]),
-      scoresRepository: fakeScoresRepository([{ userId: 'user-1', totalPoints: 5 }]),
+      scoresRepository: fakeScoresRepository([
+        { userId: 'user-1', totalPoints: 5, racesScored: 1 },
+      ]),
     });
 
     const leaderboard = await service.getLeaderboard('user-1', 'group-1');
 
     expect(leaderboard).toEqual([
-      { userId: 'user-1', displayName: 'Racer One', totalPoints: 5 },
-      { userId: 'user-2', displayName: 'Racer Two', totalPoints: 0 },
+      { userId: 'user-1', displayName: 'Racer One', totalPoints: 5, racesScored: 1 },
+      { userId: 'user-2', displayName: 'Racer Two', totalPoints: 0, racesScored: 0 },
     ]);
   });
 });

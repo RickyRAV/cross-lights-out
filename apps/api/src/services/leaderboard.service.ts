@@ -22,13 +22,14 @@ export function createLeaderboardService(deps: {
       const totals = await deps.scoresRepository.sumPointsByUserIds(
         members.map((member) => member.userId),
       );
-      const totalPointsByUserId = new Map(totals.map((total) => [total.userId, total.totalPoints]));
+      const totalsByUserId = new Map(totals.map((total) => [total.userId, total]));
 
       return members
         .map((member) => ({
           userId: member.userId,
           displayName: member.displayName,
-          totalPoints: totalPointsByUserId.get(member.userId) ?? 0,
+          totalPoints: totalsByUserId.get(member.userId)?.totalPoints ?? 0,
+          racesScored: totalsByUserId.get(member.userId)?.racesScored ?? 0,
         }))
         .sort((a, b) => b.totalPoints - a.totalPoints);
     },

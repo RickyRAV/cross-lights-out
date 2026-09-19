@@ -81,5 +81,5 @@ Notes:
 - `race_id` is the identifier from Jolpica-F1 (season plus round, e.g. `2026-15`), not a foreign key to a table we own. `race_calendar` and `race_results` are both caches keyed by that same external identifier, refreshed on a staleness check rather than mirrored as a full relational copy.
 - `predicted_order` and `actual_order` are JSON arrays of driver codes, in order. Simplest fit for "top 5, in order" without a join table per position.
 - A prediction has at most one `scores` row, created once `race_results` exists for that `race_id` and the grading job runs.
-- The leaderboard (LO-7) is a query, not a table: `GET /groups/:groupId/leaderboard` sums `scores.points` per member of the group and sorts descending. Members with no graded predictions yet still appear, at zero points.
+- The leaderboard (LO-7, extended by LO-24) is a query, not a table: `GET /groups/:groupId/leaderboard` sums `scores.points` and counts `scores` rows per member of the group in one aggregate query, sorts by points descending. Members with no graded predictions yet still appear, at zero points and zero races scored.
 - `invite_code` on `friend_groups` is what LO-4's join flow checks against. No separate invites table needed for this scale.
