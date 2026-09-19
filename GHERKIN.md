@@ -400,3 +400,70 @@ Feature: Race calendar proxy and cache
     When the next request comes in
     Then the backend refetches from Jolpica-F1 and updates the cache before responding
 ```
+
+## LO-19 Backend: list the current user's friend groups
+
+**Assignee: Ricky**
+
+_(supports user story 8 and the "active friend group" app state from 2.4, found as a gap during a backend completeness audit on 2026-09-19: a group's id and invite code are only ever returned once, from the create/join response, with no way to look them up again)_
+
+```gherkin
+Feature: List my friend groups
+
+  Scenario: A member re-fetches their groups
+    Given a user belongs to one or more friend groups
+    When they call the list-my-groups endpoint
+    Then every group they're a member of is returned, including its invite code
+
+  Scenario: A user with no groups gets an empty list
+    Given a user has never created or joined a group
+    When they call the list-my-groups endpoint
+    Then an empty array is returned, not an error
+```
+
+## LO-20 Backend: fetch my own prediction for a race
+
+**Assignee: Ricky**
+
+_(implements user story 2's "hidden from friends" half properly, a gap found on 2026-09-19: the sealed group-status endpoint nulls out `predictedOrder` for everyone including the submitter, and the only other place a prediction is ever returned is the one-time response from submitting it)_
+
+```gherkin
+Feature: Fetch my own prediction
+
+  Scenario: A user re-opens the Predict screen after submitting
+    Given a user has already submitted a prediction for a race
+    When they request their own prediction for that race
+    Then their full predicted order is returned, locked or not
+
+  Scenario: A user has not predicted yet
+    Given a user has not submitted a prediction for a race
+    When they request their own prediction for that race
+    Then a 404 is returned, not an empty or null prediction
+```
+
+## LO-21 & LO-22 Backend: current user identity and personal prediction history
+
+**Assignee: Ricky** _(bundled under one branch/PR: both add routes to a single new `users` resource, found together during the same 2026-09-19 audit, splitting them would just recreate the LO-6/LO-7 branch-stacking situation for no benefit)_
+
+_(LO-21 backs LO-14's history screen and user story 7; LO-22 backs LO-8's session handling, since the JWT only carries a user id and no endpoint ever returns email/displayName outside the one-time register/login response)_
+
+```gherkin
+Feature: Current user identity
+
+  Scenario: The app re-derives who's logged in after a cold start
+    Given a user has a valid access token but the app has no cached profile
+    When it requests the current user's identity
+    Then their id, email, and displayName are returned
+
+Feature: Personal prediction history
+
+  Scenario: A user views their full prediction history
+    Given a user has submitted predictions across multiple races
+    When they request their prediction history
+    Then every prediction is returned with its race, predicted order, actual order, and points earned
+
+  Scenario: A not-yet-graded prediction shows as pending
+    Given a user has submitted a prediction for a race that hasn't been graded yet
+    When they request their prediction history
+    Then that entry's actual order and points are null, not omitted or zero
+```
