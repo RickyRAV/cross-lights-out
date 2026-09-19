@@ -3,6 +3,7 @@ import basicAuth from '@fastify/basic-auth';
 import cors from '@fastify/cors';
 import helmet from '@fastify/helmet';
 import jwt from '@fastify/jwt';
+import rateLimit from '@fastify/rate-limit';
 import swagger from '@fastify/swagger';
 import swaggerUi from '@fastify/swagger-ui';
 import {
@@ -31,7 +32,10 @@ export interface AppDependencies {
 }
 
 export async function buildApp(deps: AppDependencies): Promise<FastifyInstance> {
-  const app = Fastify({ logger: { level: env.LOG_LEVEL } }).withTypeProvider<ZodTypeProvider>();
+  const app = Fastify({
+    logger: { level: env.LOG_LEVEL },
+    trustProxy: env.TRUST_PROXY,
+  }).withTypeProvider<ZodTypeProvider>();
 
   app.setValidatorCompiler(validatorCompiler);
   app.setSerializerCompiler(serializerCompiler);
@@ -41,6 +45,7 @@ export async function buildApp(deps: AppDependencies): Promise<FastifyInstance> 
   // CSP is for HTML pages; this is a JSON API plus one Swagger UI page,
   // so the default policy would just fight the docs page's own scripts.
   await app.register(helmet, { contentSecurityPolicy: false });
+  await app.register(rateLimit, { max: 200, timeWindow: '1 minute' });
   await app.register(jwt, {
     secret: env.JWT_SECRET,
     sign: { iss: env.JWT_ISSUER, aud: env.JWT_AUDIENCE },

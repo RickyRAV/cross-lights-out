@@ -15,6 +15,7 @@ export function authRoutes(authService: AuthService): FastifyPluginAsyncZod {
     app.post(
       '/auth/register',
       {
+        config: { rateLimit: { max: 5, timeWindow: '1 minute' } },
         schema: {
           tags: ['Auth'],
           summary: 'Create an account',
@@ -23,6 +24,7 @@ export function authRoutes(authService: AuthService): FastifyPluginAsyncZod {
             201: authResponseSchema,
             400: validationErrorResponseSchema,
             409: errorResponseSchema,
+            429: errorResponseSchema,
           },
         },
       },
@@ -35,6 +37,7 @@ export function authRoutes(authService: AuthService): FastifyPluginAsyncZod {
     app.post(
       '/auth/login',
       {
+        config: { rateLimit: { max: 5, timeWindow: '1 minute' } },
         schema: {
           tags: ['Auth'],
           summary: 'Log in with email and password',
@@ -43,6 +46,7 @@ export function authRoutes(authService: AuthService): FastifyPluginAsyncZod {
             200: authResponseSchema,
             400: validationErrorResponseSchema,
             401: errorResponseSchema,
+            429: errorResponseSchema,
           },
         },
       },
@@ -55,6 +59,7 @@ export function authRoutes(authService: AuthService): FastifyPluginAsyncZod {
     app.post(
       '/auth/refresh',
       {
+        config: { rateLimit: { max: 5, timeWindow: '1 minute' } },
         schema: {
           tags: ['Auth'],
           summary: 'Exchange a refresh token for a new token pair',
@@ -63,6 +68,7 @@ export function authRoutes(authService: AuthService): FastifyPluginAsyncZod {
             200: tokenPairResponseSchema,
             400: validationErrorResponseSchema,
             401: errorResponseSchema,
+            429: errorResponseSchema,
           },
         },
       },
