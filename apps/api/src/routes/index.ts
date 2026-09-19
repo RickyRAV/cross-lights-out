@@ -5,6 +5,7 @@ import { healthRoutes } from './health.routes';
 import { leaderboardRoutes } from './leaderboard.routes';
 import { predictionsRoutes } from './predictions.routes';
 import { racesRoutes } from './races.routes';
+import { usersRoutes } from './users.routes';
 import type { AppDependencies } from '../app';
 import type { AuthService } from '../services/auth.service';
 
@@ -18,5 +19,6 @@ export function apiRoutes(
     await app.register(racesRoutes(deps.raceCalendarService));
     await app.register(predictionsRoutes(deps.predictionsService));
     await app.register(leaderboardRoutes(deps.leaderboardService));
+    await app.register(usersRoutes(deps.usersService));
   };
 }

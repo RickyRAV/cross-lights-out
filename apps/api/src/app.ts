@@ -22,6 +22,7 @@ import type { LeaderboardService } from './services/leaderboard.service';
 import type { PredictionsService } from './services/predictions.service';
 import type { RaceCalendarService } from './services/race-calendar.service';
 import { createTokenService } from './services/token.service';
+import type { UsersService } from './services/users.service';
 import type { UsersRepository } from './repositories/users.repository';
 
 export interface AppDependencies {
@@ -31,6 +32,7 @@ export interface AppDependencies {
   predictionsService: PredictionsService;
   raceCalendarService: RaceCalendarService;
   leaderboardService: LeaderboardService;
+  usersService: UsersService;
 }
 
 export async function buildApp(deps: AppDependencies): Promise<FastifyInstance> {
@@ -74,6 +76,7 @@ export async function buildApp(deps: AppDependencies): Promise<FastifyInstance> 
         { name: 'Races', description: 'Cached race calendar, proxied from Jolpica-F1' },
         { name: 'Predictions', description: 'Sealed prediction submission and group status' },
         { name: 'Leaderboard', description: "A group's season standings" },
+        { name: 'Users', description: "The current user's identity and prediction history" },
       ],
       components: {
         securitySchemes: {

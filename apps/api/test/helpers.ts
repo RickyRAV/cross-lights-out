@@ -4,6 +4,7 @@ import type { HealthService } from '../src/services/health.service';
 import type { LeaderboardService } from '../src/services/leaderboard.service';
 import type { PredictionsService } from '../src/services/predictions.service';
 import type { RaceCalendarService } from '../src/services/race-calendar.service';
+import type { UsersService } from '../src/services/users.service';
 import type { User, UsersRepository } from '../src/repositories/users.repository';
 
 export function stubHealthService(): HealthService {
@@ -28,6 +29,9 @@ export function fakeUsersRepository(seed: User[] = []): UsersRepository {
     },
     async findByEmail(email) {
       return store.find((user) => user.email === email);
+    },
+    async findById(id) {
+      return store.find((user) => user.id === id);
     },
   };
 }
@@ -85,6 +89,18 @@ export function stubLeaderboardService(
   };
 }
 
+export function stubUsersService(overrides: Partial<UsersService> = {}): UsersService {
+  return {
+    getMe: async () => {
+      throw new Error('not used in this test');
+    },
+    getHistory: async () => {
+      throw new Error('not used in this test');
+    },
+    ...overrides,
+  };
+}
+
 export function buildTestApp(overrides: Partial<AppDependencies> = {}) {
   return buildApp({
     healthService: stubHealthService(),
@@ -93,6 +109,7 @@ export function buildTestApp(overrides: Partial<AppDependencies> = {}) {
     predictionsService: stubPredictionsService(),
     raceCalendarService: stubRaceCalendarService(),
     leaderboardService: stubLeaderboardService(),
+    usersService: stubUsersService(),
     ...overrides,
   });
 }

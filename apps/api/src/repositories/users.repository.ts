@@ -20,6 +20,7 @@ export interface User {
 export interface UsersRepository {
   create(user: NewUser): Promise<User>;
   findByEmail(email: string): Promise<User | undefined>;
+  findById(id: string): Promise<User | undefined>;
 }
 
 export function createUsersRepository(db: Database): UsersRepository {
@@ -30,6 +31,10 @@ export function createUsersRepository(db: Database): UsersRepository {
     },
     async findByEmail(email) {
       const [row] = await db.select().from(users).where(eq(users.email, email)).limit(1);
+      return row;
+    },
+    async findById(id) {
+      const [row] = await db.select().from(users).where(eq(users.id, id)).limit(1);
       return row;
     },
   };

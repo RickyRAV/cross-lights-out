@@ -5,3 +5,4 @@ export * from './groups';
 export * from './races';
 export * from './predictions';
 export * from './leaderboard';
+export * from './users';

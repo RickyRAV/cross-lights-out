@@ -15,6 +15,7 @@ import { createHealthService } from './services/health.service';
 import { createLeaderboardService } from './services/leaderboard.service';
 import { createPredictionsService } from './services/predictions.service';
 import { createRaceCalendarService } from './services/race-calendar.service';
+import { createUsersService } from './services/users.service';
 import { buildApp } from './app';
 
 async function main(): Promise<void> {
@@ -41,15 +42,22 @@ async function main(): Promise<void> {
     groupsRepository,
     raceCalendarService,
   });
+  const raceResultsRepository = createRaceResultsRepository(db);
   const scoresRepository = createScoresRepository(db);
   const gradingService = createGradingService({
     raceCalendarRepository,
-    raceResultsRepository: createRaceResultsRepository(db),
+    raceResultsRepository,
     predictionsRepository,
     scoresRepository,
     jolpicaClient,
   });
   const leaderboardService = createLeaderboardService({ groupsRepository, scoresRepository });
+  const usersService = createUsersService({
+    usersRepository,
+    predictionsRepository,
+    raceResultsRepository,
+    scoresRepository,
+  });
   const app = await buildApp({
     healthService,
     usersRepository,
@@ -57,6 +65,7 @@ async function main(): Promise<void> {
     predictionsService,
     raceCalendarService,
     leaderboardService,
+    usersService,
   });
 
   const gradingInterval = setInterval(
