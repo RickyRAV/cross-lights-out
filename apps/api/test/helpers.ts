@@ -1,6 +1,7 @@
 import { buildApp, type AppDependencies } from '../src/app';
 import type { GroupsService } from '../src/services/groups.service';
 import type { HealthService } from '../src/services/health.service';
+import type { LeaderboardService } from '../src/services/leaderboard.service';
 import type { PredictionsService } from '../src/services/predictions.service';
 import type { RaceCalendarService } from '../src/services/race-calendar.service';
 import type { User, UsersRepository } from '../src/repositories/users.repository';
@@ -67,6 +68,17 @@ export function stubRaceCalendarService(
   };
 }
 
+export function stubLeaderboardService(
+  overrides: Partial<LeaderboardService> = {},
+): LeaderboardService {
+  return {
+    getLeaderboard: async () => {
+      throw new Error('not used in this test');
+    },
+    ...overrides,
+  };
+}
+
 export function buildTestApp(overrides: Partial<AppDependencies> = {}) {
   return buildApp({
     healthService: stubHealthService(),
@@ -74,6 +86,7 @@ export function buildTestApp(overrides: Partial<AppDependencies> = {}) {
     groupsService: stubGroupsService(),
     predictionsService: stubPredictionsService(),
     raceCalendarService: stubRaceCalendarService(),
+    leaderboardService: stubLeaderboardService(),
     ...overrides,
   });
 }

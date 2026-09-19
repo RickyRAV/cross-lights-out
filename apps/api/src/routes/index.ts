@@ -2,6 +2,7 @@ import type { FastifyPluginAsync } from 'fastify';
 import { authRoutes } from './auth.routes';
 import { groupsRoutes } from './groups.routes';
 import { healthRoutes } from './health.routes';
+import { leaderboardRoutes } from './leaderboard.routes';
 import { predictionsRoutes } from './predictions.routes';
 import { racesRoutes } from './races.routes';
 import type { AppDependencies } from '../app';
@@ -16,5 +17,6 @@ export function apiRoutes(
     await app.register(groupsRoutes(deps.groupsService));
     await app.register(racesRoutes(deps.raceCalendarService));
     await app.register(predictionsRoutes(deps.predictionsService));
+    await app.register(leaderboardRoutes(deps.leaderboardService));
   };
 }
