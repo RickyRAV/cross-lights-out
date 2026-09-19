@@ -31,9 +31,11 @@ async function main(): Promise<void> {
   const groupsService = createGroupsService({ groupsRepository });
   const jolpicaClient = createJolpicaClient(env.JOLPICA_BASE_URL);
   const raceCalendarRepository = createRaceCalendarRepository(db);
+  const raceResultsRepository = createRaceResultsRepository(db);
   const predictionsRepository = createPredictionsRepository(db);
   const raceCalendarService = createRaceCalendarService({
     raceCalendarRepository,
+    raceResultsRepository,
     jolpicaClient,
     cacheTtlHours: env.RACE_CALENDAR_CACHE_TTL_HOURS,
   });
@@ -42,7 +44,6 @@ async function main(): Promise<void> {
     groupsRepository,
     raceCalendarService,
   });
-  const raceResultsRepository = createRaceResultsRepository(db);
   const scoresRepository = createScoresRepository(db);
   const gradingService = createGradingService({
     raceCalendarRepository,

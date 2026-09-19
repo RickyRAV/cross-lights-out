@@ -74,6 +74,9 @@ export function stubRaceCalendarService(
   return {
     listRaces: async () => [],
     getRace: async () => undefined,
+    getResult: async () => {
+      throw new Error('not used in this test');
+    },
     ...overrides,
   };
 }
