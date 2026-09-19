@@ -467,3 +467,43 @@ Feature: Personal prediction history
     When they request their prediction history
     Then that entry's actual order and points are null, not omitted or zero
 ```
+
+## LO-23 Backend: race result endpoint
+
+**Assignee: Ricky**
+
+_(found against the Figma wireframes on 2026-09-19: the Race Detail screen's "RESULTS — AFTER LOCKOUT" section shows the actual finishing order for the race itself, not any one person's picks, and needs it regardless of whether the viewing user personally predicted that race. The only place `actualOrder` was ever returned before this ticket was bundled inside a specific user's own history, unusable if that user didn't predict)_
+
+```gherkin
+Feature: Race result endpoint
+
+  Scenario: A graded race's result is fetched directly
+    Given a race has been graded
+    When its result is requested by raceId
+    Then the actual finishing order is returned, independent of any specific user's prediction
+
+  Scenario: A not-yet-graded race has no result
+    Given a race has not been graded yet
+    When its result is requested by raceId
+    Then a 404 is returned, not an empty or null result
+```
+
+## LO-24 Backend: races-scored count on the leaderboard
+
+**Assignee: Ricky**
+
+_(found against the Figma wireframes on 2026-09-19: the Leaderboard screen shows "N races scored" under each member's name, alongside their total points. The leaderboard endpoint from LO-7 only ever returned the point total)_
+
+```gherkin
+Feature: Races-scored count on the leaderboard
+
+  Scenario: The leaderboard shows how many races each member has been scored on
+    Given one or more races have been graded
+    When the leaderboard endpoint is called
+    Then each member's entry includes both their total points and the count of races they've been scored on
+
+  Scenario: A member with no graded predictions shows zero races scored
+    Given a group member has never had a prediction graded
+    When the leaderboard endpoint is called
+    Then their entry shows 0 total points and 0 races scored, not an omitted entry
+```
