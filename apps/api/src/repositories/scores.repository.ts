@@ -10,6 +10,7 @@ export interface NewScore {
 export interface UserPoints {
   userId: string;
   totalPoints: number;
+  racesScored: number;
 }
 
 export interface ScoreRow {
@@ -39,12 +40,17 @@ export function createScoresRepository(db: Database): ScoresRepository {
         .select({
           userId: predictions.userId,
           totalPoints: sql<string>`sum(${scores.points})`,
+          racesScored: sql<string>`count(${scores.id})`,
         })
         .from(scores)
         .innerJoin(predictions, eq(predictions.id, scores.predictionId))
         .where(inArray(predictions.userId, userIds))
         .groupBy(predictions.userId);
-      return rows.map((row) => ({ userId: row.userId, totalPoints: Number(row.totalPoints) }));
+      return rows.map((row) => ({
+        userId: row.userId,
+        totalPoints: Number(row.totalPoints),
+        racesScored: Number(row.racesScored),
+      }));
     },
     async findByPredictionIds(predictionIds) {
       if (predictionIds.length === 0) {
