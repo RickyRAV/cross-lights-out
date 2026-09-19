@@ -319,6 +319,40 @@
             }
           },
           "response": []
+        },
+        {
+          "name": "List My Groups (User One)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var groups = pm.response.json();",
+                  "pm.test(\"Status 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"the created group is in the list, with its invite code\", function () {",
+                  "    var match = groups.find(function (group) { return group.id === pm.collectionVariables.get(\"groupId\"); });",
+                  "    pm.expect(match).to.not.be.undefined;",
+                  "    pm.expect(match.inviteCode).to.eql(pm.collectionVariables.get(\"inviteCode\"));",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{tokenOne}}", "type": "string" }]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseURL}}/api/v1/groups",
+              "host": ["{{baseURL}}"],
+              "path": ["api", "v1", "groups"]
+            }
+          },
+          "response": []
         }
       ]
     },
@@ -507,6 +541,37 @@
             }
           },
           "response": []
+        },
+        {
+          "name": "Get My Own Prediction (User One)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"my own predictedOrder is never sealed\", function () {",
+                  "    pm.expect(pm.response.json().predictedOrder).to.eql([\"VER\", \"NOR\", \"LEC\", \"HAM\", \"RUS\"]);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{tokenOne}}", "type": "string" }]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseURL}}/api/v1/predictions/{{raceId}}",
+              "host": ["{{baseURL}}"],
+              "path": ["api", "v1", "predictions", "{{raceId}}"]
+            }
+          },
+          "response": []
         }
       ]
     },
@@ -593,6 +658,80 @@
               "raw": "{{baseURL}}/api/v1/groups/{{groupId}}/leaderboard",
               "host": ["{{baseURL}}"],
               "path": ["api", "v1", "groups", "{{groupId}}", "leaderboard"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "8. Users",
+      "item": [
+        {
+          "name": "Get My Identity (User One)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"identity matches the registered user\", function () {",
+                  "    var me = pm.response.json();",
+                  "    pm.expect(me.id).to.eql(pm.collectionVariables.get(\"userIdOne\"));",
+                  "    pm.expect(me.email).to.eql(pm.collectionVariables.get(\"emailOne\"));",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{tokenOne}}", "type": "string" }]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseURL}}/api/v1/users/me",
+              "host": ["{{baseURL}}"],
+              "path": ["api", "v1", "users", "me"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get My Prediction History (User One)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var history = pm.response.json();",
+                  "pm.test(\"Status 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"the submitted race appears, not yet graded\", function () {",
+                  "    var entry = history.find(function (h) { return h.raceId === pm.collectionVariables.get(\"raceId\"); });",
+                  "    pm.expect(entry).to.not.be.undefined;",
+                  "    pm.expect(entry.predictedOrder).to.eql([\"VER\", \"NOR\", \"LEC\", \"HAM\", \"RUS\"]);",
+                  "    pm.expect(entry.actualOrder).to.be.null;",
+                  "    pm.expect(entry.points).to.be.null;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{tokenOne}}", "type": "string" }]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseURL}}/api/v1/users/me/history",
+              "host": ["{{baseURL}}"],
+              "path": ["api", "v1", "users", "me", "history"]
             }
           },
           "response": []
