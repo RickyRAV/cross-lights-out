@@ -12,9 +12,15 @@ export interface UserPoints {
   totalPoints: number;
 }
 
+export interface ScoreRow {
+  predictionId: string;
+  points: number;
+}
+
 export interface ScoresRepository {
   insertMany(input: NewScore[]): Promise<void>;
   sumPointsByUserIds(userIds: string[]): Promise<UserPoints[]>;
+  findByPredictionIds(predictionIds: string[]): Promise<ScoreRow[]>;
 }
 
 export function createScoresRepository(db: Database): ScoresRepository {
@@ -39,6 +45,15 @@ export function createScoresRepository(db: Database): ScoresRepository {
         .where(inArray(predictions.userId, userIds))
         .groupBy(predictions.userId);
       return rows.map((row) => ({ userId: row.userId, totalPoints: Number(row.totalPoints) }));
+    },
+    async findByPredictionIds(predictionIds) {
+      if (predictionIds.length === 0) {
+        return [];
+      }
+      return db
+        .select({ predictionId: scores.predictionId, points: scores.points })
+        .from(scores)
+        .where(inArray(scores.predictionId, predictionIds));
     },
   };
 }

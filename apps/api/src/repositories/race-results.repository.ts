@@ -1,4 +1,4 @@
-import { eq } from 'drizzle-orm';
+import { eq, inArray } from 'drizzle-orm';
 import type { Database } from '../db/client';
 import { raceResults } from '../db/schema';
 
@@ -11,6 +11,7 @@ export interface RaceResultRow {
 export interface RaceResultsRepository {
   findById(raceId: string): Promise<RaceResultRow | undefined>;
   insertIfAbsent(raceId: string, actualOrder: string[]): Promise<RaceResultRow | undefined>;
+  findByRaceIds(raceIds: string[]): Promise<RaceResultRow[]>;
 }
 
 export function createRaceResultsRepository(db: Database): RaceResultsRepository {
@@ -30,6 +31,12 @@ export function createRaceResultsRepository(db: Database): RaceResultsRepository
         .onConflictDoNothing({ target: raceResults.raceId })
         .returning();
       return rows[0];
+    },
+    async findByRaceIds(raceIds) {
+      if (raceIds.length === 0) {
+        return [];
+      }
+      return db.select().from(raceResults).where(inArray(raceResults.raceId, raceIds));
     },
   };
 }

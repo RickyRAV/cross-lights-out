@@ -10,6 +10,8 @@
 
 `race_results` and `scores` (LO-6) are also live. A background job on the API process checks every `GRADING_INTERVAL_MINUTES` (default 30) for races past their `lockout_at` with no `race_results` row yet, fetches the final classification from Jolpica-F1, and scores every prediction for that race. A race with no `race_results` row yet is skipped and retried on the next tick, covering the gap between a session ending and Jolpica-F1 publishing its official classification. Scoring is per predicted position: 5 points for the exact driver in the exact position, 2 points if that driver finished somewhere else in the actual top 5, 0 if they didn't finish in the top 5 at all. Both the `race_results` insert and the `scores` insert use `ON CONFLICT DO NOTHING` on top of an already-graded check, so a race can't be scored twice even if the job overlaps itself.
 
+`GET /users/me` (LO-22) returns the current user's id/email/displayName, since the JWT only carries a user id and no other endpoint ever returns those fields outside the one-time register/login response. `GET /users/me/history` (LO-21) returns every prediction the user has ever submitted, newest first, each merged with its `race_results.actual_order` and `scores.points` when graded, or `null` for both when the race hasn't been graded yet, composed in the service layer from three separate repository calls rather than one cross-table SQL join, matching how the leaderboard composes across `groups`/`scores`.
+
 ## Full domain model
 
 Predictions are scoped to a user and a race, not to a group. A user predicts once per race, and that same prediction and score counts toward every friend group they're a member of. This avoids duplicating a prediction row per group.

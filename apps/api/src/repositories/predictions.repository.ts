@@ -1,4 +1,4 @@
-import { and, eq, inArray } from 'drizzle-orm';
+import { and, desc, eq, inArray } from 'drizzle-orm';
 import type { Database } from '../db/client';
 import { predictions } from '../db/schema';
 import { firstRow } from '../lib/db';
@@ -24,6 +24,7 @@ export interface PredictionsRepository {
   findByUserAndRace(userId: string, raceId: string): Promise<Prediction | undefined>;
   findByRaceForUsers(raceId: string, userIds: string[]): Promise<Prediction[]>;
   findByRaceId(raceId: string): Promise<Prediction[]>;
+  findByUserId(userId: string): Promise<Prediction[]>;
 }
 
 export function createPredictionsRepository(db: Database): PredictionsRepository {
@@ -62,6 +63,13 @@ export function createPredictionsRepository(db: Database): PredictionsRepository
     },
     async findByRaceId(raceId) {
       return db.select().from(predictions).where(eq(predictions.raceId, raceId));
+    },
+    async findByUserId(userId) {
+      return db
+        .select()
+        .from(predictions)
+        .where(eq(predictions.userId, userId))
+        .orderBy(desc(predictions.submittedAt));
     },
   };
 }
