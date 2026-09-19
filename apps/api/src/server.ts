@@ -6,7 +6,10 @@ import { createGroupsRepository } from './repositories/groups.repository';
 import { createHealthRepository } from './repositories/health.repository';
 import { createPredictionsRepository } from './repositories/predictions.repository';
 import { createRaceCalendarRepository } from './repositories/race-calendar.repository';
+import { createRaceResultsRepository } from './repositories/race-results.repository';
+import { createScoresRepository } from './repositories/scores.repository';
 import { createUsersRepository } from './repositories/users.repository';
+import { createGradingService } from './services/grading.service';
 import { createGroupsService } from './services/groups.service';
 import { createHealthService } from './services/health.service';
 import { createPredictionsService } from './services/predictions.service';
@@ -24,15 +27,25 @@ async function main(): Promise<void> {
   const usersRepository = createUsersRepository(db);
   const groupsRepository = createGroupsRepository(db);
   const groupsService = createGroupsService({ groupsRepository });
+  const jolpicaClient = createJolpicaClient(env.JOLPICA_BASE_URL);
+  const raceCalendarRepository = createRaceCalendarRepository(db);
+  const predictionsRepository = createPredictionsRepository(db);
   const raceCalendarService = createRaceCalendarService({
-    raceCalendarRepository: createRaceCalendarRepository(db),
-    jolpicaClient: createJolpicaClient(env.JOLPICA_BASE_URL),
+    raceCalendarRepository,
+    jolpicaClient,
     cacheTtlHours: env.RACE_CALENDAR_CACHE_TTL_HOURS,
   });
   const predictionsService = createPredictionsService({
-    predictionsRepository: createPredictionsRepository(db),
+    predictionsRepository,
     groupsRepository,
     raceCalendarService,
+  });
+  const gradingService = createGradingService({
+    raceCalendarRepository,
+    raceResultsRepository: createRaceResultsRepository(db),
+    predictionsRepository,
+    scoresRepository: createScoresRepository(db),
+    jolpicaClient,
   });
   const app = await buildApp({
     healthService,
@@ -42,9 +55,22 @@ async function main(): Promise<void> {
     raceCalendarService,
   });
 
+  const gradingInterval = setInterval(
+    () => {
+      gradingService.gradeFinishedRaces().catch((error) => {
+        app.log.error({ error }, 'race grading job failed');
+      });
+    },
+    env.GRADING_INTERVAL_MINUTES * 60 * 1000,
+  );
+  gradingService.gradeFinishedRaces().catch((error) => {
+    app.log.error({ error }, 'race grading job failed');
+  });
+
   for (const signal of ['SIGINT', 'SIGTERM'] as const) {
     process.on(signal, async () => {
       app.log.info({ signal }, 'shutting down');
+      clearInterval(gradingInterval);
       await app.close();
       await pool.end();
       process.exit(0);
