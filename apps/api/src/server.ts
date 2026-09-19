@@ -1,11 +1,16 @@
 import { env } from './config/env';
 import { createDb } from './db/client';
 import { runMigrations } from './db/migrate';
+import { createJolpicaClient } from './lib/jolpica-client';
 import { createGroupsRepository } from './repositories/groups.repository';
 import { createHealthRepository } from './repositories/health.repository';
+import { createPredictionsRepository } from './repositories/predictions.repository';
+import { createRaceCalendarRepository } from './repositories/race-calendar.repository';
 import { createUsersRepository } from './repositories/users.repository';
 import { createGroupsService } from './services/groups.service';
 import { createHealthService } from './services/health.service';
+import { createPredictionsService } from './services/predictions.service';
+import { createRaceCalendarService } from './services/race-calendar.service';
 import { buildApp } from './app';
 
 async function main(): Promise<void> {
@@ -17,8 +22,25 @@ async function main(): Promise<void> {
 
   const healthService = createHealthService({ healthRepository: createHealthRepository(db) });
   const usersRepository = createUsersRepository(db);
-  const groupsService = createGroupsService({ groupsRepository: createGroupsRepository(db) });
-  const app = await buildApp({ healthService, usersRepository, groupsService });
+  const groupsRepository = createGroupsRepository(db);
+  const groupsService = createGroupsService({ groupsRepository });
+  const raceCalendarService = createRaceCalendarService({
+    raceCalendarRepository: createRaceCalendarRepository(db),
+    jolpicaClient: createJolpicaClient(env.JOLPICA_BASE_URL),
+    cacheTtlHours: env.RACE_CALENDAR_CACHE_TTL_HOURS,
+  });
+  const predictionsService = createPredictionsService({
+    predictionsRepository: createPredictionsRepository(db),
+    groupsRepository,
+    raceCalendarService,
+  });
+  const app = await buildApp({
+    healthService,
+    usersRepository,
+    groupsService,
+    predictionsService,
+    raceCalendarService,
+  });
 
   for (const signal of ['SIGINT', 'SIGTERM'] as const) {
     process.on(signal, async () => {

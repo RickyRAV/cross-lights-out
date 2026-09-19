@@ -1,23 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { buildApp } from '../src/app';
-import type { HealthService } from '../src/services/health.service';
-
-function stubHealthService(overrides: Partial<HealthService> = {}): HealthService {
-  return {
-    check: async () => ({
-      status: 'ok',
-      timestamp: new Date().toISOString(),
-      service: 'lights-out-api',
-      version: '0.1.0',
-      database: 'up',
-    }),
-    ...overrides,
-  };
-}
+import { buildTestApp, stubHealthService } from './helpers';
 
 describe('GET /api/v1/health', () => {
   it('returns 200 when the database is reachable', async () => {
-    const app = await buildApp({ healthService: stubHealthService() });
+    const app = await buildTestApp();
 
     const response = await app.inject({ method: 'GET', url: '/api/v1/health' });
 
@@ -26,8 +12,9 @@ describe('GET /api/v1/health', () => {
   });
 
   it('returns 503 when the database is unreachable', async () => {
-    const app = await buildApp({
-      healthService: stubHealthService({
+    const app = await buildTestApp({
+      healthService: {
+        ...stubHealthService(),
         check: async () => ({
           status: 'degraded',
           timestamp: new Date().toISOString(),
@@ -35,7 +22,7 @@ describe('GET /api/v1/health', () => {
           version: '0.1.0',
           database: 'down',
         }),
-      }),
+      },
     });
 
     const response = await app.inject({ method: 'GET', url: '/api/v1/health' });

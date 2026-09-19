@@ -6,9 +6,11 @@
 
 `users`, `friend_groups`, and `group_members` (LO-4) are live, matching the plan below. Auth is a self-issued JWT pair: a short-lived access token and a longer-lived refresh token, both stateless, no server-side session or refresh-token table. `POST /auth/refresh` just re-verifies the refresh token's signature and expiry and mints a new pair, so there's no revocation before a refresh token's own expiry.
 
-## Planned (LO-5 through LO-7, plus LO-18)
+`race_calendar` and `predictions` (LO-5, with a minimal LO-18 pulled forward since LO-5's lockout check needs a real lockout timestamp to compare against) are also live. `race_calendar` is refreshed from Jolpica-F1's current-season schedule whenever the most recently cached row is older than `RACE_CALENDAR_CACHE_TTL_HOURS` (default 24h). `race_id` is `{season}-{round}` (e.g. `2026-15`). A prediction's `locked_at` is a snapshot of the race's `lockout_at` taken at submission time, not a live join, so a later calendar correction can't retroactively lock or unlock an already-submitted prediction. Sealing (`GET /groups/:groupId/races/:raceId/predictions`) compares the current time against the race's live `lockout_at` from `race_calendar`, not the per-user snapshot, since members who haven't submitted yet have no snapshot to compare against.
 
-Predictions are scoped to a user and a race, not to a group. A user predicts once per race, and that same prediction and score counts toward every friend group they're a member of. This avoids duplicating a prediction row per group.
+## Full domain model
+
+Predictions are scoped to a user and a race, not to a group. A user predicts once per race, and that same prediction and score counts toward every friend group they're a member of. This avoids duplicating a prediction row per group. `RACE_RESULTS` and `SCORES` below are still planned (LO-6, LO-7), everything else in this diagram is live.
 
 ```mermaid
 erDiagram
@@ -72,10 +74,10 @@ erDiagram
 
 Notes:
 
-- `race_id` is the identifier from Jolpica-F1 (season plus round), not a foreign key to a table we own. `race_calendar` and `race_results` are both caches keyed by that same external identifier, refreshed on a staleness check rather than mirrored as a full relational copy (LO-18).
+- `race_id` is the identifier from Jolpica-F1 (season plus round, e.g. `2026-15`), not a foreign key to a table we own. `race_calendar` and `race_results` are both caches keyed by that same external identifier, refreshed on a staleness check rather than mirrored as a full relational copy.
 - `predicted_order` and `actual_order` are JSON arrays of driver codes, in order. Simplest fit for "top 5, in order" without a join table per position.
-- A prediction has at most one `scores` row, created once `race_results` exists for that `race_id` and the grading job runs (LO-6).
-- The leaderboard (LO-7) is a query, not a table: sum `scores.points` for predictions belonging to users in a given group.
+- A prediction has at most one `scores` row, created once `race_results` exists for that `race_id` and the grading job runs (LO-6, still planned).
+- The leaderboard (LO-7, still planned) is a query, not a table: sum `scores.points` for predictions belonging to users in a given group.
 - `invite_code` on `friend_groups` is what LO-4's join flow checks against. No separate invites table needed for this scale.
 
-This is a plan, not a lock-in. Expect it to shift a little once LO-4 is actually being implemented.
+`race_results` and `scores` are still a plan, not a lock-in. Expect them to shift a little once LO-6 is actually being implemented.
