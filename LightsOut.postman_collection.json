@@ -1,0 +1,621 @@
+{
+  "info": {
+    "_postman_id": "lightsout-e2e",
+    "name": "LightsOut_E2E",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Health",
+      "item": [
+        {
+          "name": "Health Check",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"database up\", function () {",
+                  "    pm.expect(pm.response.json().database).to.eql(\"up\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseURL}}/api/v1/health",
+              "host": ["{{baseURL}}"],
+              "path": ["api", "v1", "health"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "2. Auth (User One - Group Creator)",
+      "item": [
+        {
+          "name": "Register User One",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const timestamp = new Date().getTime();",
+                  "pm.collectionVariables.set(\"emailOne\", \"racer_one_\" + timestamp + \"@test.com\");",
+                  "pm.collectionVariables.set(\"passwordOne\", \"password123\");",
+                  "pm.collectionVariables.set(\"displayNameOne\", \"Racer One \" + timestamp);",
+                  "console.log(\"--- REGISTERING USER ONE ---\");",
+                  "console.log(\"Email: \" + pm.collectionVariables.get(\"emailOne\"));"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "pm.test(\"Status 201\", function () { pm.response.to.have.status(201); });",
+                  "",
+                  "pm.collectionVariables.set(\"tokenOne\", jsonData.accessToken);",
+                  "pm.collectionVariables.set(\"refreshTokenOne\", jsonData.refreshToken);",
+                  "pm.collectionVariables.set(\"userIdOne\", jsonData.user.id);",
+                  "console.log(\"User One ID: \" + jsonData.user.id);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"email\": \"{{emailOne}}\",\n    \"password\": \"{{passwordOne}}\",\n    \"displayName\": \"{{displayNameOne}}\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseURL}}/api/v1/auth/register",
+              "host": ["{{baseURL}}"],
+              "path": ["api", "v1", "auth", "register"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Login User One",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "pm.test(\"Status 200\", function () { pm.response.to.have.status(200); });",
+                  "",
+                  "pm.collectionVariables.set(\"tokenOne\", jsonData.accessToken);",
+                  "pm.collectionVariables.set(\"refreshTokenOne\", jsonData.refreshToken);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"email\": \"{{emailOne}}\",\n    \"password\": \"{{passwordOne}}\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseURL}}/api/v1/auth/login",
+              "host": ["{{baseURL}}"],
+              "path": ["api", "v1", "auth", "login"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Refresh Token (User One)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "pm.test(\"Status 200\", function () { pm.response.to.have.status(200); });",
+                  "",
+                  "pm.collectionVariables.set(\"tokenOne\", jsonData.accessToken);",
+                  "pm.collectionVariables.set(\"refreshTokenOne\", jsonData.refreshToken);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"refreshToken\": \"{{refreshTokenOne}}\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseURL}}/api/v1/auth/refresh",
+              "host": ["{{baseURL}}"],
+              "path": ["api", "v1", "auth", "refresh"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "3. Auth (User Two - Joiner)",
+      "item": [
+        {
+          "name": "Register User Two",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const timestamp = new Date().getTime();",
+                  "pm.collectionVariables.set(\"emailTwo\", \"racer_two_\" + timestamp + \"@test.com\");",
+                  "pm.collectionVariables.set(\"passwordTwo\", \"password123\");",
+                  "pm.collectionVariables.set(\"displayNameTwo\", \"Racer Two \" + timestamp);",
+                  "console.log(\"--- REGISTERING USER TWO ---\");",
+                  "console.log(\"Email: \" + pm.collectionVariables.get(\"emailTwo\"));"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "pm.test(\"Status 201\", function () { pm.response.to.have.status(201); });",
+                  "",
+                  "pm.collectionVariables.set(\"tokenTwo\", jsonData.accessToken);",
+                  "pm.collectionVariables.set(\"userIdTwo\", jsonData.user.id);",
+                  "console.log(\"User Two ID: \" + jsonData.user.id);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"email\": \"{{emailTwo}}\",\n    \"password\": \"{{passwordTwo}}\",\n    \"displayName\": \"{{displayNameTwo}}\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseURL}}/api/v1/auth/register",
+              "host": ["{{baseURL}}"],
+              "path": ["api", "v1", "auth", "register"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "4. Groups",
+      "item": [
+        {
+          "name": "Create Group (User One, saves groupId + inviteCode)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "pm.test(\"Status 201\", function () { pm.response.to.have.status(201); });",
+                  "",
+                  "pm.collectionVariables.set(\"groupId\", jsonData.id);",
+                  "pm.collectionVariables.set(\"inviteCode\", jsonData.inviteCode);",
+                  "console.log(\"Group ID: \" + jsonData.id + \" / Invite: \" + jsonData.inviteCode);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{tokenOne}}", "type": "string" }]
+            },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"E2E Test Group\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseURL}}/api/v1/groups",
+              "host": ["{{baseURL}}"],
+              "path": ["api", "v1", "groups"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Join Group (User Two)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"joined the same group\", function () {",
+                  "    pm.expect(pm.response.json().id).to.eql(pm.collectionVariables.get(\"groupId\"));",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{tokenTwo}}", "type": "string" }]
+            },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"inviteCode\": \"{{inviteCode}}\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseURL}}/api/v1/groups/join",
+              "host": ["{{baseURL}}"],
+              "path": ["api", "v1", "groups", "join"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Join Group - Invalid Invite Code (expect 404)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status 404\", function () { pm.response.to.have.status(404); });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{tokenTwo}}", "type": "string" }]
+            },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"inviteCode\": \"NOTAREALCODE\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseURL}}/api/v1/groups/join",
+              "host": ["{{baseURL}}"],
+              "path": ["api", "v1", "groups", "join"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "5. Races",
+      "item": [
+        {
+          "name": "List Races (saves an unlocked raceId)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var races = pm.response.json();",
+                  "pm.test(\"Status 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"calendar is not empty\", function () { pm.expect(races.length).to.be.above(0); });",
+                  "",
+                  "var now = Date.now();",
+                  "var upcoming = races.find(function (race) { return new Date(race.lockoutAt).getTime() > now; });",
+                  "",
+                  "if (upcoming) {",
+                  "    pm.collectionVariables.set(\"raceId\", upcoming.raceId);",
+                  "    console.log(\"Using upcoming race: \" + upcoming.raceId + \" (\" + upcoming.name + \")\");",
+                  "} else {",
+                  "    console.warn(\"No upcoming race found in the cached calendar, Submit Prediction will 409\");",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{tokenOne}}", "type": "string" }]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseURL}}/api/v1/races",
+              "host": ["{{baseURL}}"],
+              "path": ["api", "v1", "races"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "6. Predictions",
+      "item": [
+        {
+          "name": "Submit Prediction (User One)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"predictedOrder echoed back\", function () {",
+                  "    pm.expect(pm.response.json().predictedOrder).to.eql([\"VER\", \"NOR\", \"LEC\", \"HAM\", \"RUS\"]);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{tokenOne}}", "type": "string" }]
+            },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"raceId\": \"{{raceId}}\",\n    \"predictedOrder\": [\"VER\", \"NOR\", \"LEC\", \"HAM\", \"RUS\"]\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseURL}}/api/v1/predictions",
+              "host": ["{{baseURL}}"],
+              "path": ["api", "v1", "predictions"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Submit Prediction (User Two)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status 200\", function () { pm.response.to.have.status(200); });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{tokenTwo}}", "type": "string" }]
+            },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"raceId\": \"{{raceId}}\",\n    \"predictedOrder\": [\"NOR\", \"VER\", \"RUS\", \"LEC\", \"HAM\"]\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseURL}}/api/v1/predictions",
+              "host": ["{{baseURL}}"],
+              "path": ["api", "v1", "predictions"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Submit Prediction - Duplicate Drivers (expect 400)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status 400\", function () { pm.response.to.have.status(400); });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{tokenOne}}", "type": "string" }]
+            },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"raceId\": \"{{raceId}}\",\n    \"predictedOrder\": [\"VER\", \"VER\", \"LEC\", \"HAM\", \"RUS\"]\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseURL}}/api/v1/predictions",
+              "host": ["{{baseURL}}"],
+              "path": ["api", "v1", "predictions"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Group Race Predictions - Sealed (User One)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var statuses = pm.response.json();",
+                  "pm.test(\"Status 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"both members show as submitted\", function () {",
+                  "    pm.expect(statuses.length).to.eql(2);",
+                  "    statuses.forEach(function (status) { pm.expect(status.submitted).to.be.true; });",
+                  "});",
+                  "pm.test(\"picks are sealed before lockout\", function () {",
+                  "    statuses.forEach(function (status) { pm.expect(status.predictedOrder).to.be.null; });",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{tokenOne}}", "type": "string" }]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseURL}}/api/v1/groups/{{groupId}}/races/{{raceId}}/predictions",
+              "host": ["{{baseURL}}"],
+              "path": ["api", "v1", "groups", "{{groupId}}", "races", "{{raceId}}", "predictions"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "7. Leaderboard",
+      "item": [
+        {
+          "name": "Get Leaderboard (User One)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var leaderboard = pm.response.json();",
+                  "pm.test(\"Status 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"both members appear\", function () { pm.expect(leaderboard.length).to.eql(2); });",
+                  "pm.test(\"nobody scored yet, race hasn't been graded\", function () {",
+                  "    leaderboard.forEach(function (entry) { pm.expect(entry.totalPoints).to.eql(0); });",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{tokenOne}}", "type": "string" }]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseURL}}/api/v1/groups/{{groupId}}/leaderboard",
+              "host": ["{{baseURL}}"],
+              "path": ["api", "v1", "groups", "{{groupId}}", "leaderboard"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Leaderboard - Not a Member (expect 403)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const timestamp = new Date().getTime();",
+                  "const email = \"outsider_\" + timestamp + \"@test.com\";",
+                  "",
+                  "pm.sendRequest({",
+                  "    url: pm.collectionVariables.get(\"baseURL\") + \"/api/v1/auth/register\",",
+                  "    method: \"POST\",",
+                  "    header: { \"Content-Type\": \"application/json\" },",
+                  "    body: {",
+                  "        mode: \"raw\",",
+                  "        raw: JSON.stringify({ email: email, password: \"password123\", displayName: \"Outsider\" })",
+                  "    }",
+                  "}, function (err, res) {",
+                  "    if (err) { console.error(err); return; }",
+                  "    pm.collectionVariables.set(\"tokenOutsider\", res.json().accessToken);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status 403\", function () { pm.response.to.have.status(403); });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{tokenOutsider}}", "type": "string" }]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseURL}}/api/v1/groups/{{groupId}}/leaderboard",
+              "host": ["{{baseURL}}"],
+              "path": ["api", "v1", "groups", "{{groupId}}", "leaderboard"]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    { "key": "baseURL", "value": "http://localhost:3000", "type": "default" },
+    { "key": "emailOne", "value": "", "type": "string" },
+    { "key": "passwordOne", "value": "", "type": "string" },
+    { "key": "displayNameOne", "value": "", "type": "string" },
+    { "key": "tokenOne", "value": "", "type": "string" },
+    { "key": "refreshTokenOne", "value": "", "type": "string" },
+    { "key": "userIdOne", "value": "", "type": "string" },
+    { "key": "emailTwo", "value": "", "type": "string" },
+    { "key": "passwordTwo", "value": "", "type": "string" },
+    { "key": "displayNameTwo", "value": "", "type": "string" },
+    { "key": "tokenTwo", "value": "", "type": "string" },
+    { "key": "userIdTwo", "value": "", "type": "string" },
+    { "key": "groupId", "value": "", "type": "string" },
+    { "key": "inviteCode", "value": "", "type": "string" },
+    { "key": "raceId", "value": "", "type": "string" },
+    { "key": "tokenOutsider", "value": "", "type": "string" }
+  ]
+}
