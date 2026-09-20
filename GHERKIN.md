@@ -1,6 +1,6 @@
 # Lights Out Backlog
 
-Each ticket below has a Gherkin scenario and an assignee. Ricky is handling the backend and home lab deployment, plus the Leaderboard and Join Group screens since those build directly on the endpoints he wrote. Nikola is building the rest of the mobile app. Either of us can pick up any ticket if the other is stuck.
+Each ticket below has a Gherkin scenario and an assignee. Ricky handles the backend and home lab deployment, plus the mobile app's state management/data-fetching setup, native notification feature, offline caching, and the Leaderboard and Join Group screens (which build directly on backend endpoints he wrote). Nikola handles the app shell/navigation and the rest of the mobile screens. Either of us can pick up any ticket if the other is stuck.
 
 - Current stack decision: mobile `Expo (React Native)` with `NativeWind` for styling, backend `Fastify + Drizzle + PostgreSQL`, state `Zustand + TanStack Query`
 - See `docs/project-specification.md` for the full spec this backlog implements
@@ -177,12 +177,14 @@ Feature: Season leaderboard
     Then the newly graded race's points are already reflected without any manual recalculation step
 ```
 
-## LO-8 Mobile: Expo app shell, navigation, and state wiring
+## LO-8a Mobile: Expo app shell and navigation
 
 **Assignee: Nikola**
 
+_(split from the original LO-8 on 2026-09-20, navigation and state wiring are separate concerns and work better as separate tickets, see LO-8b)_
+
 ```gherkin
-Feature: Mobile application shell
+Feature: Mobile application shell and navigation
 
   Scenario: The mobile app is initialized
     Given the project uses Expo for the mobile app
@@ -192,14 +194,29 @@ Feature: Mobile application shell
   Scenario: Navigation structure is in place
     Given the shell exists
     When an engineer inspects the navigation
-    Then Predict, Leaderboard, History, and Settings are reachable as tabs
+    Then Predict, Leaderboard, History, and Settings are reachable as tabs via Expo Router
     And Race Detail is reachable as a stack screen from Predict
+```
+
+## LO-8b Mobile: state management and data-fetching setup
+
+**Assignee: Ricky**
+
+_(split from the original LO-8 on 2026-09-20, see LO-8a. Pairs naturally with the backend API Ricky already owns, since TanStack Query calls it directly)_
+
+```gherkin
+Feature: Mobile state and data libraries
 
   Scenario: State libraries are wired
     Given the app needs both local UI state and server data
     When the store and query client are set up
-    Then Zustand manages local/UI state
-    And TanStack Query manages all server data with caching
+    Then Zustand manages local/UI state (in-progress prediction draft, active friend group)
+    And TanStack Query manages all server data with caching, backed by hooks that wrap every call to the backend API
+
+  Scenario: Screens consume data only through hooks
+    Given the query client is configured
+    When a screen needs data from the backend
+    Then it calls a TanStack Query hook, never `fetch` directly
 ```
 
 ## LO-9 Mobile: race calendar and countdown
@@ -261,7 +278,7 @@ Feature: Friend submission status
 
 ## LO-12 Mobile: lockout reminder notification
 
-**Assignee: Nikola**
+**Assignee: Ricky** _(reassigned from Nikola on 2026-09-20 as part of a general rebalance toward more even mobile ownership between the two of us)_
 
 _(implements user story 5, required native feature)_
 
@@ -317,7 +334,7 @@ Feature: Personal prediction history
 
 ## LO-15 Mobile: offline caching and graceful degradation
 
-**Assignee: Ricky & Nikola (joint)**
+**Assignee: Ricky** _(moved from joint to solo on 2026-09-20 as part of a general rebalance toward more even mobile ownership between the two of us)_
 
 _(implements user stories 9, 10)_
 
@@ -355,7 +372,7 @@ Feature: Join friend group
 
 ## LO-17 Testing and minimum coverage
 
-**Assignee: Ricky (backend scoring tests) & Nikola (mobile component test)**
+**Assignee: Ricky (backend scoring tests, mobile leaderboard component test)** _(mobile half moved from Nikola to Ricky on 2026-09-20, attached to the leaderboard screen he owns from LO-13)_
 
 ```gherkin
 Feature: Automated tests for Lights Out
@@ -366,7 +383,7 @@ Feature: Automated tests for Lights Out
     Then exact-match, partial-match, and no-match scoring cases are all covered
 
   Scenario: A mobile component has test coverage
-    Given the leaderboard or prediction-card component is implemented
+    Given the leaderboard component from LO-13 is implemented
     When its component test is run
     Then it renders correctly given representative props
 
