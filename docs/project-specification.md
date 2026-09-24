@@ -10,7 +10,7 @@
 ## 2.2 Chosen Framework
 
 - **Framework**: React Native via Expo (managed workflow).
-- **Rationale**: both of us already know React and TypeScript, so most of the learning curve is the mobile-specific stuff (native APIs, navigation, platform quirks), not the language itself. Expo also means we don't have to write any custom native code, since notifications, the required native feature, are already covered by the Expo SDK.
+- **Rationale**: both of us already know React and TypeScript, so most of the learning curve is the mobile-specific stuff (native APIs, navigation, platform quirks), not the language itself.
 - **Target platforms**: Android is developed and tested by both.
 
 ## 2.3 Core User Stories
@@ -90,10 +90,24 @@
 
 ## 2.4 Screen / Navigation Structure
 
+- **Login / Register** (auth stack): email/password sign-in or account creation. Successful authentication opens the main tabs, an existing valid session opens them directly. Signing out from Settings returns to Login.
 - **Predict** (tab, stack root): next race, countdown, prediction form or sealed "submitted" state → **Race Detail** (stack): full session info, friend status list, and (post-lockout) everyone's revealed picks/points.
 - **Leaderboard** (tab): season standings.
 - **History** (tab): past predictions, results, points earned.
 - **Settings** (tab): notifications, friend group create/join, account.
+
+Planned navigation flow:
+
+```text
+App launch -> Session check
+  No valid session -> Login <-> Register -> Main tabs (after authentication)
+  Valid session ------------------------> Main tabs
+Main tabs:
+  Predict -> Race Detail (stack, back returns to Predict)
+  Leaderboard
+  History
+  Settings -> Sign out -> Login
+```
 
 Key state: auth session, active friend group, cached calendar/results (TanStack Query), in-progress prediction draft (Zustand), notification permission status.
 
@@ -116,6 +130,8 @@ Every screen talks only to our own backend. For auth we're using a simple self-i
 We talked about building a real offline write-queue (save predictions locally, sync once you're back online), but decided to leave that for later if there's time. Keeping it out of the baseline is more realistic for one semester.
 
 ## 2.8 Technical Approach & Architecture
+
+The planned mobile architecture is layered: presentation (`screens/`, `components/`), API access (`hooks/`), and local/UI state (`store/`). Screens compose these layers, keeping API access and state management outside the view code. Navigation uses an authentication stack followed by bottom tabs, with a nested stack for Predict and Race Detail. The backend uses a three-layer architecture (routes/API, business logic, data access).
 
 One GitHub repo (Moodle takes a single URL), pnpm workspaces:
 
