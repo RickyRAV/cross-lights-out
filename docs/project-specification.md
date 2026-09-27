@@ -80,28 +80,32 @@
    Done when none of these screens ever show a blank/broken state offline.
    ```
 
-8. **As a fan, I want to join a friend group using an invite code, so my predictions count toward a leaderboard with people I know.**
+8. **As a fan, I want to create my friend group or join it with an invite code right after registering, so my predictions count toward a leaderboard with people I know.**
    ```gherkin
-   GIVEN I have a valid invite code,
-   WHEN I enter it in Settings,
-   THEN I'm added to that group and appear on its leaderboard going forward.
-   Done when an invalid code is rejected without creating a membership.
+   GIVEN I've just registered and I'm not in a group yet,
+   WHEN I create a group or enter a valid invite code,
+   THEN I'm in that group for good and appear on its leaderboard going forward.
+   Done when an invalid code is rejected without creating a membership, and a user who's already in a group can't create or join another one.
    ```
 
 ## 2.4 Screen / Navigation Structure
 
-- **Login / Register** (auth stack): email/password sign-in or account creation. Successful authentication opens the main tabs, an existing valid session opens them directly. Signing out from Settings returns to Login.
+- **Login / Register** (auth stack): email/password sign-in or account creation. Successful authentication opens the main tabs, or onboarding first if the user isn't in a group yet. An existing valid session skips Login. Signing out from Settings returns to Login.
+- **Onboarding** (once, right after registering): create a friend group and share its invite code, or join one with a code. Every user is in exactly one group, and there's no leaving or switching, so a returning user goes straight to the tabs.
 - **Predict** (tab, stack root): next race, countdown, prediction form or sealed "submitted" state → **Race Detail** (stack): full session info, friend status list, and (post-lockout) everyone's revealed picks/points.
 - **Leaderboard** (tab): season standings.
 - **History** (tab): past predictions, results, points earned.
-- **Settings** (tab): notifications, friend group create/join, account.
+- **Settings** (tab): notifications, your friend group's name and invite code, account.
 
 Planned navigation flow:
 
 ```text
 App launch -> Session check
-  No valid session -> Login <-> Register -> Main tabs (after authentication)
-  Valid session ------------------------> Main tabs
+  No valid session -> Login <-> Register -> Group check (after authentication)
+  Valid session ------------------------> Group check
+Group check:
+  No group yet -> Onboarding (create or join) -> Main tabs
+  Already in a group -------------------------> Main tabs
 Main tabs:
   Predict -> Race Detail (stack, back returns to Predict)
   Leaderboard
@@ -109,7 +113,7 @@ Main tabs:
   Settings -> Sign out -> Login
 ```
 
-Key state: auth session, active friend group, cached calendar/results (TanStack Query), in-progress prediction draft (Zustand), notification permission status.
+Key state: auth session, the user's friend group, cached calendar/results (TanStack Query), in-progress prediction draft (Zustand), notification permission status.
 
 ## 2.5 API and Data Sources
 
@@ -131,7 +135,7 @@ We talked about building a real offline write-queue (save predictions locally, s
 
 ## 2.8 Technical Approach & Architecture
 
-The planned mobile architecture is layered: presentation (`screens/`, `components/`), API access (`hooks/`), and local/UI state (`store/`). Screens compose these layers, keeping API access and state management outside the view code. Navigation uses an authentication stack followed by bottom tabs, with a nested stack for Predict and Race Detail. The backend uses a three-layer architecture (routes/API, business logic, data access).
+The planned mobile architecture is layered: presentation (`screens/`, `components/`), API access (`hooks/`), and local/UI state (`store/`). Screens compose these layers, keeping API access and state management outside the view code. Navigation uses an authentication stack and a one-time onboarding step, followed by bottom tabs, with a nested stack for Predict and Race Detail. The backend uses a three-layer architecture (routes/API, business logic, data access).
 
 One GitHub repo (Moodle takes a single URL), pnpm workspaces:
 
@@ -145,9 +149,3 @@ docker-compose.prod.yml   deployed on Ricky's own server
 Mobile's `store/` folder is Zustand, for local/UI state. The `hooks/` folder wraps TanStack Query calls to our own API. Styling is done with NativeWind (Tailwind for React Native), which gives us full control over a custom dark racing theme instead of a default Material look. For components we don't want to build from scratch (forms, modals, lists), we're pulling in gluestack-ui's primitives, which copy the component code straight into our repo and get restyled with our own theme, rather than pulling in a locked dependency.
 
 The backend is built with Fastify and Drizzle on top of PostgreSQL, split into three layers: routes/API, business logic, and data access, so each part has one clear job. Incoming request bodies are validated with Zod before they reach the business logic layer, so bad input gets rejected early with a clear error instead of failing deeper in the code. It's deployed as a container on Ricky's own server, using the same docker-compose setup for local development and production, so both of us develop against one shared, always-on backend instead of two separate local databases. Screens don't call `fetch` directly, they always go through a query or mutation hook. For testing, we're covering the scoring algorithm with unit tests and doing at least one component test on the leaderboard/prediction card.
-
-## 2.9 Changelog
-
-| Date       | Change                      | Why                                                         |
-| ---------- | --------------------------- | ----------------------------------------------------------- |
-| 2026-09-17 | Initial draft specification | Concept and architecture finalized before development start |

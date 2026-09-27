@@ -1,4 +1,4 @@
-import { pgTable, primaryKey, timestamp, uuid } from 'drizzle-orm/pg-core';
+import { pgTable, primaryKey, timestamp, unique, uuid } from 'drizzle-orm/pg-core';
 import { friendGroups } from './friend-groups';
 import { users } from './users';
 
@@ -13,5 +13,5 @@ export const groupMembers = pgTable(
       .references(() => users.id),
     joinedAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
   },
-  (table) => [primaryKey({ columns: [table.groupId, table.userId] })],
+  (table) => [primaryKey({ columns: [table.groupId, table.userId] }), unique().on(table.userId)],
 );

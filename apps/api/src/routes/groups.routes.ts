@@ -24,6 +24,7 @@ export function groupsRoutes(groupsService: GroupsService): FastifyPluginAsyncZo
             201: groupResponseSchema,
             400: validationErrorResponseSchema,
             401: errorResponseSchema,
+            409: errorResponseSchema,
             429: errorResponseSchema,
           },
         },
@@ -48,6 +49,7 @@ export function groupsRoutes(groupsService: GroupsService): FastifyPluginAsyncZo
             400: validationErrorResponseSchema,
             401: errorResponseSchema,
             404: errorResponseSchema,
+            409: errorResponseSchema,
             429: errorResponseSchema,
           },
         },
@@ -65,7 +67,7 @@ export function groupsRoutes(groupsService: GroupsService): FastifyPluginAsyncZo
         schema: {
           tags: ['Groups'],
           security: [{ bearerAuth: [] }],
-          summary: 'List the friend groups the current user belongs to',
+          summary: 'List the friend group the current user belongs to, at most one',
           response: {
             200: groupListResponseSchema,
             401: errorResponseSchema,
