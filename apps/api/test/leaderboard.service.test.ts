@@ -7,11 +7,11 @@ function fakeGroupsRepository(
   members: { userId: string; displayName: string }[] = [],
 ): GroupsRepository {
   return {
-    create: async () => {
+    createWithCreator: async () => {
       throw new Error('not used in this test');
     },
     findByInviteCode: async () => undefined,
-    addMember: async () => {},
+    addMember: async () => true,
     isMember: async (_groupId, userId) => members.some((member) => member.userId === userId),
     listMembers: async () => members,
   };

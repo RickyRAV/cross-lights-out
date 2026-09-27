@@ -1,0 +1,1 @@
+ALTER TABLE "group_members" ADD CONSTRAINT "group_members_userId_unique" UNIQUE("user_id");

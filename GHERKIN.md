@@ -80,7 +80,7 @@ Feature: Backend service skeleton and deployment
 
 **Assignee: Ricky**
 
-_(implements user story 11)_
+_(implements user story 8)_
 
 ```gherkin
 Feature: Friend groups and lightweight auth
@@ -92,7 +92,7 @@ Feature: Friend groups and lightweight auth
 
   Scenario: A user can join a group via invite code
     Given a user has received a valid invite code
-    When they submit it in Settings
+    When they submit it during onboarding
     Then they are added to that friend group
     And they appear on that group's leaderboard from that point forward
 
@@ -107,7 +107,7 @@ Feature: Friend groups and lightweight auth
 
 **Assignee: Ricky**
 
-_(implements user stories 2, 3, 4)_
+_(implements user stories 2, 3)_
 
 ```gherkin
 Feature: Prediction submission and sealing
@@ -134,7 +134,7 @@ Feature: Prediction submission and sealing
 
 **Assignee: Ricky**
 
-_(implements user story 6, core scoring logic, primary unit test target)_
+_(implements user story 5)_
 
 ```gherkin
 Feature: Automatic prediction grading
@@ -161,7 +161,7 @@ Feature: Automatic prediction grading
 
 **Assignee: Ricky**
 
-_(implements user story 7)_
+_(implements user story 6)_
 
 ```gherkin
 Feature: Season leaderboard
@@ -181,8 +181,6 @@ Feature: Season leaderboard
 
 **Assignee: Nikola**
 
-_(split from the original LO-8 on 2026-09-20, navigation and state wiring are separate concerns and work better as separate tickets, see LO-8b)_
-
 ```gherkin
 Feature: Mobile application shell and navigation
 
@@ -201,8 +199,6 @@ Feature: Mobile application shell and navigation
 ## LO-8b Mobile: state management and data-fetching setup
 
 **Assignee: Ricky**
-
-_(split from the original LO-8 on 2026-09-20, see LO-8a. Pairs naturally with the backend API Ricky already owns, since TanStack Query calls it directly)_
 
 ```gherkin
 Feature: Mobile state and data libraries
@@ -243,7 +239,7 @@ Feature: Race calendar display
 
 **Assignee: Nikola**
 
-_(implements user stories 2, 3)_
+_(implements user story 2)_
 
 ```gherkin
 Feature: Prediction submission UI
@@ -264,7 +260,7 @@ Feature: Prediction submission UI
 
 **Assignee: Nikola**
 
-_(implements user story 4)_
+_(implements user story 3)_
 
 ```gherkin
 Feature: Friend submission status
@@ -278,9 +274,9 @@ Feature: Friend submission status
 
 ## LO-12 Mobile: lockout reminder notification
 
-**Assignee: Ricky** _(reassigned from Nikola on 2026-09-20 as part of a general rebalance toward more even mobile ownership between the two of us)_
+**Assignee: Ricky**
 
-_(implements user story 5, required native feature)_
+_(implements user story 4)_
 
 ```gherkin
 Feature: Lockout reminder notifications
@@ -304,9 +300,9 @@ Feature: Lockout reminder notifications
 
 ## LO-13 Mobile: leaderboard screen
 
-**Assignee: Ricky** _(builds the screen consuming the leaderboard endpoint he owns from LO-7, end-to-end ownership of one feature slice, and real mobile-app work toward even distribution)_
+**Assignee: Ricky**
 
-_(implements user story 7)_
+_(implements user story 6)_
 
 ```gherkin
 Feature: Leaderboard screen
@@ -321,7 +317,7 @@ Feature: Leaderboard screen
 
 **Assignee: Nikola**
 
-_(implements user story 8)_
+_(implements user story 7)_
 
 ```gherkin
 Feature: Personal prediction history
@@ -334,9 +330,9 @@ Feature: Personal prediction history
 
 ## LO-15 Mobile: offline caching and graceful degradation
 
-**Assignee: Ricky** _(moved from joint to solo on 2026-09-20 as part of a general rebalance toward more even mobile ownership between the two of us)_
+**Assignee: Ricky**
 
-_(implements user stories 9, 10)_
+_(implements user story 7)_
 
 ```gherkin
 Feature: Offline behavior
@@ -354,25 +350,39 @@ Feature: Offline behavior
     And their in-progress draft is preserved locally, not lost
 ```
 
-## LO-16 Mobile: join friend group UI
+## LO-16 Mobile: create or join friend group onboarding
 
-**Assignee: Ricky** _(builds the screen consuming the invite-code endpoint he owns from LO-4, same end-to-end rationale as LO-13)_
+**Assignee: Ricky**
 
-_(implements user story 11)_
+_(implements user story 8)_
 
 ```gherkin
-Feature: Join friend group
+Feature: Create or join friend group onboarding
 
   Scenario: A user joins via invite code
-    Given the user has a valid invite code
-    When they enter it in Settings
+    Given a user has just registered and is not in a group yet
+    And they have a valid invite code
+    When they enter it on the onboarding screen
     Then they are added to the group
     And the group's leaderboard becomes visible to them
+
+  Scenario: A user creates a group and shares it
+    Given a user has just registered and is not in a group yet
+    When they create a group
+    Then its invite code is shown with a way to copy or share it
+    And they continue into the app afterwards
+
+  Scenario: A returning user skips onboarding
+    Given a user is already in a group
+    When they log in
+    Then they land on the Predict tab without seeing onboarding
 ```
 
 ## LO-17 Testing and minimum coverage
 
-**Assignee: Ricky (backend scoring tests, mobile leaderboard component test)** _(mobile half moved from Nikola to Ricky on 2026-09-20, attached to the leaderboard screen he owns from LO-13)_
+**Assignee: Ricky (backend scoring tests, mobile leaderboard component test)**
+
+_(implements user story 5)_
 
 ```gherkin
 Feature: Automated tests for Lights Out
@@ -422,15 +432,15 @@ Feature: Race calendar proxy and cache
 
 **Assignee: Ricky**
 
-_(supports user story 8 and the "active friend group" app state from 2.4, found as a gap during a backend completeness audit on 2026-09-19: a group's id and invite code are only ever returned once, from the create/join response, with no way to look them up again)_
+_(implements user story 8)_
 
 ```gherkin
 Feature: List my friend groups
 
-  Scenario: A member re-fetches their groups
-    Given a user belongs to one or more friend groups
+  Scenario: A member re-fetches their group
+    Given a user belongs to a friend group
     When they call the list-my-groups endpoint
-    Then every group they're a member of is returned, including its invite code
+    Then their group is returned, including its invite code
 
   Scenario: A user with no groups gets an empty list
     Given a user has never created or joined a group
@@ -442,7 +452,7 @@ Feature: List my friend groups
 
 **Assignee: Ricky**
 
-_(implements user story 2's "hidden from friends" half properly, a gap found on 2026-09-19: the sealed group-status endpoint nulls out `predictedOrder` for everyone including the submitter, and the only other place a prediction is ever returned is the one-time response from submitting it)_
+_(implements user story 2)_
 
 ```gherkin
 Feature: Fetch my own prediction
@@ -460,9 +470,7 @@ Feature: Fetch my own prediction
 
 ## LO-21 & LO-22 Backend: current user identity and personal prediction history
 
-**Assignee: Ricky** _(bundled under one branch/PR: both add routes to a single new `users` resource, found together during the same 2026-09-19 audit, splitting them would just recreate the LO-6/LO-7 branch-stacking situation for no benefit)_
-
-_(LO-21 backs LO-14's history screen and user story 7; LO-22 backs LO-8's session handling, since the JWT only carries a user id and no endpoint ever returns email/displayName outside the one-time register/login response)_
+**Assignee: Ricky**
 
 ```gherkin
 Feature: Current user identity
@@ -489,8 +497,6 @@ Feature: Personal prediction history
 
 **Assignee: Ricky**
 
-_(found against the Figma wireframes on 2026-09-19: the Race Detail screen's "RESULTS — AFTER LOCKOUT" section shows the actual finishing order for the race itself, not any one person's picks, and needs it regardless of whether the viewing user personally predicted that race. The only place `actualOrder` was ever returned before this ticket was bundled inside a specific user's own history, unusable if that user didn't predict)_
-
 ```gherkin
 Feature: Race result endpoint
 
@@ -509,7 +515,7 @@ Feature: Race result endpoint
 
 **Assignee: Ricky**
 
-_(found against the Figma wireframes on 2026-09-19: the Leaderboard screen shows "N races scored" under each member's name, alongside their total points. The leaderboard endpoint from LO-7 only ever returned the point total)_
+_(implements user story 6)_
 
 ```gherkin
 Feature: Races-scored count on the leaderboard
@@ -523,4 +529,36 @@ Feature: Races-scored count on the leaderboard
     Given a group member has never had a prediction graded
     When the leaderboard endpoint is called
     Then their entry shows 0 total points and 0 races scored, not an omitted entry
+```
+
+## LO-25 Backend: one friend group per user
+
+**Assignee: Ricky**
+
+_(implements user story 8)_
+
+```gherkin
+Feature: One friend group per user
+
+  Scenario: A user in a group cannot create another one
+    Given a user is already in a friend group
+    When they try to create a new group
+    Then the request is rejected with a 409
+    And no new group is created
+
+  Scenario: A user in a group cannot join a different one
+    Given a user is already in a friend group
+    When they submit an invite code for a different group
+    Then the request is rejected with a 409
+    And their membership is unchanged
+
+  Scenario: Re-joining your own group is harmless
+    Given a user is already in a friend group
+    When they submit that same group's invite code
+    Then their group is returned and nothing changes
+
+  Scenario: Concurrent requests cannot put a user in two groups
+    Given a user is not in a group yet
+    When several create or join requests for them arrive at the same time
+    Then they end up in exactly one group
 ```

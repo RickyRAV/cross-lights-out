@@ -321,6 +321,40 @@
           "response": []
         },
         {
+          "name": "Create Group - Already in a Group (expect 409)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status 409\", function () { pm.response.to.have.status(409); });",
+                  "pm.test(\"error is AlreadyInGroup\", function () { pm.expect(pm.response.json().error).to.eql(\"AlreadyInGroup\"); });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{tokenOne}}", "type": "string" }]
+            },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"Second Group\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseURL}}/api/v1/groups",
+              "host": ["{{baseURL}}"],
+              "path": ["api", "v1", "groups"]
+            }
+          },
+          "response": []
+        },
+        {
           "name": "List My Groups (User One)",
           "event": [
             {

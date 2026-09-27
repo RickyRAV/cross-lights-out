@@ -12,12 +12,18 @@ export interface GroupsService {
 export function createGroupsService(deps: { groupsRepository: GroupsRepository }): GroupsService {
   return {
     async createGroup(userId, name) {
-      const group = await deps.groupsRepository.create({
+      const existing = await deps.groupsRepository.findByUserId(userId);
+      if (existing.length > 0) {
+        throw alreadyInGroup();
+      }
+      const group = await deps.groupsRepository.createWithCreator({
         name,
         inviteCode: generateInviteCode(),
         createdBy: userId,
       });
-      await deps.groupsRepository.addMember(group.id, userId);
+      if (!group) {
+        throw alreadyInGroup();
+      }
       return toGroupResponse(group);
     },
 
@@ -26,7 +32,17 @@ export function createGroupsService(deps: { groupsRepository: GroupsRepository }
       if (!group) {
         throw new AppError(404, 'InvalidInviteCode', 'No active group matches this invite code');
       }
-      await deps.groupsRepository.addMember(group.id, userId);
+      const [current] = await deps.groupsRepository.findByUserId(userId);
+      if (current?.id === group.id) {
+        return toGroupResponse(group);
+      }
+      if (current) {
+        throw alreadyInGroup();
+      }
+      const added = await deps.groupsRepository.addMember(group.id, userId);
+      if (!added && !(await deps.groupsRepository.isMember(group.id, userId))) {
+        throw alreadyInGroup();
+      }
       return toGroupResponse(group);
     },
 
@@ -35,6 +51,10 @@ export function createGroupsService(deps: { groupsRepository: GroupsRepository }
       return groups.map(toGroupResponse);
     },
   };
+}
+
+function alreadyInGroup(): AppError {
+  return new AppError(409, 'AlreadyInGroup', 'You are already in a friend group');
 }
 
 function toGroupResponse(group: Group): GroupResponse {

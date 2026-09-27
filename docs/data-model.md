@@ -4,9 +4,9 @@
 
 `health_check` (LO-3, disposable, proves the migration pipeline runs, not a real domain table).
 
-`users`, `friend_groups`, and `group_members` (LO-4) are live, matching the plan below. Auth is a self-issued JWT pair: a short-lived access token and a longer-lived refresh token, both stateless, no server-side session or refresh-token table. `POST /auth/refresh` just re-verifies the refresh token's signature and expiry and mints a new pair, so there's no revocation before a refresh token's own expiry. `GET /groups` (LO-19) lists the current user's groups, since a group's id and invite code are otherwise only ever returned once, from the create/join response.
+`users`, `friend_groups`, and `group_members` (LO-4) are live, matching the plan below. Auth is a self-issued JWT pair: a short-lived access token and a longer-lived refresh token, both stateless, no server-side session or refresh-token table. `POST /auth/refresh` just re-verifies the refresh token's signature and expiry and mints a new pair, so there's no revocation before a refresh token's own expiry. `GET /groups` (LO-19) lists the current user's group, since a group's id and invite code are otherwise only ever returned once, from the create/join response. A user belongs to at most one group (LO-25), enforced by a unique constraint on `group_members.user_id`, so that list is always empty or a single entry. Creating a group inserts the group and the creator's membership in one transaction, so a double-tapped create can't leave an empty group behind. Creating or joining while already in a group returns 409 `AlreadyInGroup`, and re-joining your own group is a no-op.
 
-`race_calendar` and `predictions` (LO-5, with a minimal LO-18 pulled forward since LO-5's lockout check needs a real lockout timestamp to compare against) are also live. `race_calendar` is refreshed from Jolpica-F1's current-season schedule whenever the most recently cached row is older than `RACE_CALENDAR_CACHE_TTL_HOURS` (default 24h). `race_id` is `{season}-{round}` (e.g. `2026-15`). A prediction's `locked_at` is a snapshot of the race's `lockout_at` taken at submission time, not a live join, so a later calendar correction can't retroactively lock or unlock an already-submitted prediction. Sealing (`GET /groups/:groupId/races/:raceId/predictions`) compares the current time against the race's live `lockout_at` from `race_calendar`, not the per-user snapshot, since members who haven't submitted yet have no snapshot to compare against, and deliberately nulls out everyone's `predictedOrder` pre-lockout, including the submitter's own. `GET /predictions/:raceId` (LO-20) is the one place a user can always see their own full prediction, locked or not.
+`race_calendar` and `predictions` (LO-5, plus the part of LO-18 that LO-5's lockout check needs for a real lockout timestamp) are also live. `race_calendar` is refreshed from Jolpica-F1's current-season schedule whenever the most recently cached row is older than `RACE_CALENDAR_CACHE_TTL_HOURS` (default 24h). `race_id` is `{season}-{round}` (e.g. `2026-15`). A prediction's `locked_at` is a snapshot of the race's `lockout_at` taken at submission time, not a live join, so a later calendar correction can't retroactively lock or unlock an already-submitted prediction. Sealing (`GET /groups/:groupId/races/:raceId/predictions`) compares the current time against the race's live `lockout_at` from `race_calendar`, not the per-user snapshot, since members who haven't submitted yet have no snapshot to compare against, and deliberately nulls out everyone's `predictedOrder` pre-lockout, including the submitter's own. `GET /predictions/:raceId` (LO-20) is the one place a user can always see their own full prediction, locked or not.
 
 `race_results` and `scores` (LO-6) are also live. A background job on the API process checks every `GRADING_INTERVAL_MINUTES` (default 30) for races past their `lockout_at` with no `race_results` row yet, fetches the final classification from Jolpica-F1, and scores every prediction for that race. A race with no `race_results` row yet is skipped and retried on the next tick, covering the gap between a session ending and Jolpica-F1 publishing its official classification. Scoring is per predicted position: 5 points for the exact driver in the exact position, 2 points if that driver finished somewhere else in the actual top 5, 0 if they didn't finish in the top 5 at all. Both the `race_results` insert and the `scores` insert use `ON CONFLICT DO NOTHING` on top of an already-graded check, so a race can't be scored twice even if the job overlaps itself. `GET /races/:raceId/result` (LO-23) returns a race's `actual_order` directly, 404 if not graded yet, so the mobile app's Race Detail screen can show the actual finishing order without depending on the viewing user having personally predicted that race (the only other place `actual_order` was ever returned was bundled inside a specific user's own history).
 
@@ -14,7 +14,7 @@
 
 ## Full domain model
 
-Predictions are scoped to a user and a race, not to a group. A user predicts once per race, and that same prediction and score counts toward every friend group they're a member of. This avoids duplicating a prediction row per group.
+Predictions are scoped to a user and a race, not to a group. A user predicts once per race and belongs to one friend group, so their prediction and score show up on that group's leaderboard. Keeping predictions off the group also means nobody could hedge different picks in different groups, even if multiple groups per user ever came back.
 
 ```mermaid
 erDiagram
@@ -70,7 +70,7 @@ erDiagram
         timestamptz computed_at
     }
 
-    USERS ||--o{ GROUP_MEMBERS : "belongs to"
+    USERS ||--o| GROUP_MEMBERS : "belongs to"
     FRIEND_GROUPS ||--o{ GROUP_MEMBERS : "has"
     USERS ||--o{ PREDICTIONS : "submits"
     PREDICTIONS ||--o| SCORES : "graded into"

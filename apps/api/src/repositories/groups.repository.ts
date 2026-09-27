@@ -1,4 +1,4 @@
-import { and, eq } from 'drizzle-orm';
+import { and, eq, TransactionRollbackError } from 'drizzle-orm';
 import type { Database } from '../db/client';
 import { friendGroups, groupMembers, users } from '../db/schema';
 import { firstRow } from '../lib/db';
@@ -23,9 +23,9 @@ export interface GroupMember {
 }
 
 export interface GroupsRepository {
-  create(group: NewGroup): Promise<Group>;
+  createWithCreator(group: NewGroup): Promise<Group | undefined>;
   findByInviteCode(inviteCode: string): Promise<Group | undefined>;
-  addMember(groupId: string, userId: string): Promise<void>;
+  addMember(groupId: string, userId: string): Promise<boolean>;
   isMember(groupId: string, userId: string): Promise<boolean>;
   listMembers(groupId: string): Promise<GroupMember[]>;
   findByUserId(userId: string): Promise<Group[]>;
@@ -33,9 +33,26 @@ export interface GroupsRepository {
 
 export function createGroupsRepository(db: Database): GroupsRepository {
   return {
-    async create(group) {
-      const rows = await db.insert(friendGroups).values(group).returning();
-      return firstRow(rows);
+    async createWithCreator(group) {
+      try {
+        return await db.transaction(async (tx) => {
+          const created = firstRow(await tx.insert(friendGroups).values(group).returning());
+          const added = await tx
+            .insert(groupMembers)
+            .values({ groupId: created.id, userId: group.createdBy })
+            .onConflictDoNothing()
+            .returning();
+          if (added.length === 0) {
+            tx.rollback();
+          }
+          return created;
+        });
+      } catch (error) {
+        if (error instanceof TransactionRollbackError) {
+          return undefined;
+        }
+        throw error;
+      }
     },
     async findByInviteCode(inviteCode) {
       const [row] = await db
@@ -46,7 +63,12 @@ export function createGroupsRepository(db: Database): GroupsRepository {
       return row;
     },
     async addMember(groupId, userId) {
-      await db.insert(groupMembers).values({ groupId, userId }).onConflictDoNothing();
+      const added = await db
+        .insert(groupMembers)
+        .values({ groupId, userId })
+        .onConflictDoNothing()
+        .returning();
+      return added.length > 0;
     },
     async isMember(groupId, userId) {
       const [row] = await db
