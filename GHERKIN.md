@@ -290,7 +290,12 @@ Feature: Lockout reminder notifications
   Scenario: A reminder fires before lockout
     Given permission is granted and the user has not yet predicted
     When the lockout enters the configured reminder window
-    Then a local notification is delivered on both Android and iOS
+    Then a local notification is delivered on Android
+
+  Scenario: The reminder warns about a prediction that hasn't been sent
+    Given the user submitted a prediction offline and it is still waiting to send
+    When the lockout enters the configured reminder window
+    Then the notification says the prediction hasn't been sent yet
 
   Scenario: The app remains usable without notification permission
     Given the user denied notification permission
@@ -317,7 +322,7 @@ Feature: Leaderboard screen
 
 **Assignee: Nikola**
 
-_(implements user story 7)_
+_(implements user stories 7 and 9)_
 
 ```gherkin
 Feature: Personal prediction history
@@ -328,7 +333,7 @@ Feature: Personal prediction history
     Then each past race shows the user's prediction, the actual result, and points earned
 ```
 
-## LO-15 Mobile: offline caching and graceful degradation
+## LO-15 Mobile: offline caching and queued submissions
 
 **Assignee: Ricky**
 
@@ -343,11 +348,22 @@ Feature: Offline behavior
     Then the calendar, history, and last-synced leaderboard remain viewable
     And a "last updated" indicator is shown instead of a blank or broken screen
 
-  Scenario: Submitting offline fails gracefully
+  Scenario: A prediction submitted offline is sent automatically
     Given the device has no network connection
-    When the user attempts to submit a prediction
-    Then a clear message asks them to reconnect before lockout
-    And their in-progress draft is preserved locally, not lost
+    When the user submits a prediction
+    Then it is queued on the device and shown as "waiting to send"
+    And it is sent automatically once the device is back online
+
+  Scenario: A queued prediction survives an app restart
+    Given a prediction is waiting to send
+    When the app is closed and reopened
+    Then the prediction is still queued and is sent once the device is online
+
+  Scenario: A queued prediction misses lockout
+    Given a prediction is waiting to send
+    When the device only comes back online after the race's lockout
+    Then the prediction is not sent
+    And the user is told it didn't count because they were offline until after lockout
 ```
 
 ## LO-16 Mobile: create or join friend group onboarding

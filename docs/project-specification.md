@@ -2,7 +2,7 @@
 
 ## 2.1 Project Introduction
 
-- **Team members**: Ricky Raveanu (RickyRAV), Nikola (Nikola-Petro)
+- **Team members**: Ricky Raveanu (RickyRAV), Nikola Petrovic (Nikola-Petro)
 - **Working title**: Lights Out
 - **Summary**: A multiplayer Formula 1 prediction game. Before each race weekend's session lockout, everyone in a friend group privately predicts the finishing order. Once the real session ends, the app auto-grades everyone against the actual result and updates a shared season leaderboard.
 - **Target users / problem**: F1 fans who already trade predictions informally in group chats or casual bets, but have no real way to track who's actually right over a season. Lights Out turns that into an actual record: predictions are sealed so nobody can copy, results are graded automatically, and the leaderboard keeps score all season.
@@ -13,7 +13,7 @@
 - **Rationale**: both of us already know React and TypeScript, so most of the learning curve is the mobile-specific stuff (native APIs, navigation, platform quirks), not the language itself.
 - **Target platforms**: Android is developed and tested by both.
 
-## 2.3 Core User Stories
+## 2.3 Planned Features (User Stories)
 
 1. **As a fan, I want to see the upcoming race with a countdown to lockout, so I know how long I have to predict.**
 
@@ -49,7 +49,7 @@
    GIVEN notification permission is granted and I haven't predicted yet,
    WHEN lockout enters a configured reminder window,
    THEN I get a local notification.
-   Done when it fires on both Android and iOS, and permission-denied is handled without breaking the app.
+   Done when it fires on Android, and permission-denied is handled without breaking the app.
    ```
 
 5. **As a fan, I want my prediction automatically scored against the real result, so I don't calculate points myself.**
@@ -70,23 +70,44 @@
    Done when a newly graded race is reflected without any manual step.
    ```
 
-7. **As a fan, I want to browse the calendar, my history, and the last-synced leaderboard while offline, so the app stays useful without a connection.**
+7. **As a fan, I want to browse my data and submit my prediction even without a connection, so a bad signal doesn't cost me a race.**
 
    ```gherkin
    GIVEN I've previously loaded the app online,
    WHEN I open it offline,
-   THEN cached data is still viewable with a "last updated" indicator,
-   AND attempting to submit a prediction offline shows a clear "reconnect to submit" message instead of losing my draft or crashing.
-   Done when none of these screens ever show a blank/broken state offline.
+   THEN the calendar, my history, and the last-synced leaderboard are still viewable with a "last updated" indicator,
+   AND a prediction I submit offline is shown as "waiting to send" and is sent automatically once I'm back online.
+   Done when no screen shows a blank or broken state offline, and a queued prediction either reaches the backend before lockout or I'm clearly told it didn't count.
    ```
 
 8. **As a fan, I want to create my friend group or join it with an invite code right after registering, so my predictions count toward a leaderboard with people I know.**
+
    ```gherkin
    GIVEN I've just registered and I'm not in a group yet,
    WHEN I create a group or enter a valid invite code,
    THEN I'm in that group for good and appear on its leaderboard going forward.
    Done when an invalid code is rejected without creating a membership, and a user who's already in a group can't create or join another one.
    ```
+
+9. **As a fan, I want to look back at my past predictions next to the real results, so I can see where I gained or lost points.**
+
+   ```gherkin
+   GIVEN I've predicted at least one race,
+   WHEN I open the History screen,
+   THEN every race I predicted is listed newest first with my top 5, the actual top 5, and the points I earned,
+   AND races that aren't graded yet are marked as pending instead of showing 0 points.
+   Done when a race moves from pending to scored on its own once the backend grades it.
+   ```
+
+10. **As a fan, I want to see what everyone in my group picked once predictions are closed, so we can compare who called the race best.**
+
+    ```gherkin
+    GIVEN the lockout for a race has passed,
+    WHEN I open that race,
+    THEN I see the top 5 every group member picked,
+    AND after the race is scored, I also see the real result and each member's points.
+    Done when nobody's picks can be seen before lockout.
+    ```
 
 ## 2.4 Screen / Navigation Structure
 
@@ -113,7 +134,7 @@ Main tabs:
   Settings -> Sign out -> Login
 ```
 
-Key state: auth session, the user's friend group, cached calendar/results (TanStack Query), in-progress prediction draft (Zustand), notification permission status.
+Key state: auth session, the user's friend group, cached calendar/results and queued offline submissions (TanStack Query), in-progress prediction draft (Zustand), notification permission status.
 
 ## 2.5 API and Data Sources
 
@@ -124,24 +145,32 @@ Every screen talks only to our own backend. For auth we're using a simple self-i
 
 ## 2.6 Native Feature Usage
 
-**Local push notifications** (`expo-notifications`) remind a user to predict before lockout.
+We use **local notifications** through `expo-notifications` to remind a user to predict before lockout.
+
+- **Where it's used**: whenever the app loads the race calendar, it schedules a reminder for the next race, set to fire a fixed time before that race's lockout. Submitting a prediction cancels the reminder for that race, so nobody gets nagged after they've already picked. Settings shows whether reminders are on and links to the system notification settings.
+- **Why it matters**: lockout is the only deadline in the game, and missing it means zero points for that race. Race weekends move around the calendar and across time zones, so an in-app countdown alone isn't enough when the app is closed. A reminder on the lock screen is what actually keeps people from missing it.
+- **Permissions**: the permission prompt is shown after onboarding, not on the very first screen, so the user already knows what the app is for when asked. On Android 13 and newer this is the runtime `POST_NOTIFICATIONS` prompt, and reminders go through their own Android notification channel. Granted, denied, and undetermined are all handled. If permission is denied, nothing is scheduled, Settings shows reminders as off, and the countdown on the Predict screen still works.
+- **Why local instead of server push**: the lockout time is already on the device from the cached calendar, so the phone can schedule the reminder itself. That means no push server, no device tokens stored on our backend, and a reminder that still fires if the phone is offline when lockout gets close.
 
 ## 2.7 Offline / Persistence Strategy
 
 - **Read, fully offline**: the calendar, history, and last-synced leaderboard are cached (TanStack Query's persisted cache), so they're browsable with no internet. We show a "last updated" timestamp so it's clear when it's stale.
-- **Write, needs connectivity**: a prediction only counts once it reaches the backend, so submitting one can't really happen offline. If you try without a connection, we keep your draft locally and tell you to reconnect before lockout instead of just crashing or dropping it silently.
+- **Write, queued offline**: you can submit a prediction without a connection. The submission is queued on the device (TanStack Query's paused mutations, saved together with the persisted cache so the queue survives an app restart) and the Predict screen shows it as "waiting to send" instead of "submitted". As soon as the device is back online, the queue is sent automatically.
 
-We talked about building a real offline write-queue (save predictions locally, sync once you're back online), but decided to leave that for later if there's time. Keeping it out of the baseline is more realistic for one semester.
+A prediction only counts once it reaches the backend before lockout. Before sending a queued prediction, the app checks the lockout time from the cached calendar. If lockout has already passed, it isn't sent, and the user is told the prediction didn't count because they were offline until after lockout. If the backend still rejects it, for example because the device clock was off, the user sees the same message instead of the error being swallowed. If a prediction is still waiting to send when the lockout reminder fires (2.6), the notification says so, so the user knows to get online.
+
+The queue is sent while the app is open, or the next time it's opened. Sending while the app is fully closed would need background tasks, which Android doesn't run reliably, so we don't rely on them.
 
 ## 2.8 Technical Approach & Architecture
 
 The planned mobile architecture is layered: presentation (`screens/`, `components/`), API access (`hooks/`), and local/UI state (`store/`). Screens compose these layers, keeping API access and state management outside the view code. Navigation uses an authentication stack and a one-time onboarding step, followed by bottom tabs, with a nested stack for Predict and Race Detail. The backend uses a three-layer architecture (routes/API, business logic, data access).
 
-One GitHub repo (Moodle takes a single URL), pnpm workspaces:
+The app and the backend live in the same GitHub repo, set up as a pnpm workspace. The request and response types are defined once in `packages/shared` and used by both sides, so if the API changes shape, the app stops compiling instead of breaking at runtime.
 
 ```text
-apps/mobile/   Expo app (screens/, components/, store/, hooks/)
-apps/api/      Fastify + Drizzle backend (auth, groups, predictions, scoring, leaderboard)
+apps/mobile/              Expo app (screens/, components/, store/, hooks/)
+apps/api/                 Fastify + Drizzle backend (routes/, services/, repositories/)
+packages/shared/          request/response types used by both apps
 docker-compose.yml        local dev (db + api)
 docker-compose.prod.yml   deployed on Ricky's own server
 ```
@@ -149,3 +178,12 @@ docker-compose.prod.yml   deployed on Ricky's own server
 Mobile's `store/` folder is Zustand, for local/UI state. The `hooks/` folder wraps TanStack Query calls to our own API. Styling is done with NativeWind (Tailwind for React Native), which gives us full control over a custom dark racing theme instead of a default Material look. For components we don't want to build from scratch (forms, modals, lists), we're pulling in gluestack-ui's primitives, which copy the component code straight into our repo and get restyled with our own theme, rather than pulling in a locked dependency.
 
 The backend is built with Fastify and Drizzle on top of PostgreSQL, split into three layers: routes/API, business logic, and data access, so each part has one clear job. Incoming request bodies are validated with Zod before they reach the business logic layer, so bad input gets rejected early with a clear error instead of failing deeper in the code. It's deployed as a container on Ricky's own server, using the same docker-compose setup for local development and production, so both of us develop against one shared, always-on backend instead of two separate local databases. Screens don't call `fetch` directly, they always go through a query or mutation hook. For testing, we're covering the scoring algorithm with unit tests and doing at least one component test on the leaderboard/prediction card.
+
+## 2.9 Changelog
+
+- First draft of the specification, plus the backlog in `GHERKIN.md`. Set up the monorepo and deployed the API skeleton to Ricky's server, so the hosting setup was proven working before any features were built on top of it.
+- The app no longer calls Jolpica-F1 directly (2.5). Only the backend talks to it, and it caches the race calendar and results for the app. Having the app call Jolpica-F1 for some data and our backend for the rest meant two different data sources in the client, and grading has to happen on the server anyway so it can't be gamed.
+- Finished the backend: auth, friend groups, sealed predictions, the race calendar cache, automatic grading, and the leaderboard. Checking every planned screen against the API showed a few endpoints the screens would need but that weren't planned, so we added them: listing your groups, fetching your own prediction, your identity and prediction history, a single race's result, and the number of races scored on the leaderboard.
+- Made the auth and onboarding navigation clearer (2.4) and described the mobile architecture in more detail (2.8).
+- Each user is now in exactly one friend group, created or joined during onboarding right after registering (story 8, 2.4). Supporting several groups per user would have meant a group picker on almost every screen, while the whole point of the app is one leaderboard with your friends.
+- Added user stories 9 (history) and 10 (seeing everyone's picks after lockout), expanded 2.6 with where notifications are used and how permissions are handled, and changed offline submissions to be queued and sent automatically once the device is back online (story 7, 2.7). The first plan only kept a local draft that had to be submitted again by hand, which is easy to forget right before lockout.
