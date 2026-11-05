@@ -7,7 +7,6 @@ export default function RootLayout() {
     <ThemeProvider value={navigationTheme}>
       <Stack>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="race-detail" options={{ title: 'Race Detail' }} />
       </Stack>
     </ThemeProvider>
   );
