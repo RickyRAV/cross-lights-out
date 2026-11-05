@@ -1,3 +1,4 @@
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { Tabs } from 'expo-router';
 import colors from '@/theme/colors';
 
@@ -6,15 +7,63 @@ export default function TabLayout() {
     <Tabs
       screenOptions={{
         tabBarInactiveTintColor: colors.muted,
-        tabBarIconStyle: { display: 'none' },
         tabBarLabelStyle: { fontSize: 13, fontWeight: '600' },
-        tabBarLabelPosition: 'beside-icon',
+        tabBarLabelPosition: 'below-icon',
       }}
     >
-      <Tabs.Screen name="index" options={{ title: 'Predict' }} />
-      <Tabs.Screen name="leaderboard" options={{ title: 'Leaderboard' }} />
-      <Tabs.Screen name="history" options={{ title: 'History' }} />
-      <Tabs.Screen name="settings" options={{ title: 'Settings' }} />
+      <Tabs.Screen
+        name="(predict)"
+        options={{
+          title: 'Predict',
+          headerShown: false,
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons
+              name="flag-outline"
+              color={typeof color === 'string' ? color : colors.foreground}
+              size={size}
+            />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="leaderboard"
+        options={{
+          title: 'Leaderboard',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons
+              name="trophy-outline"
+              color={typeof color === 'string' ? color : colors.foreground}
+              size={size}
+            />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="history"
+        options={{
+          title: 'History',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons
+              name="time-outline"
+              color={typeof color === 'string' ? color : colors.foreground}
+              size={size}
+            />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="settings"
+        options={{
+          title: 'Settings',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons
+              name="settings-outline"
+              color={typeof color === 'string' ? color : colors.foreground}
+              size={size}
+            />
+          ),
+        }}
+      />
     </Tabs>
   );
 }
