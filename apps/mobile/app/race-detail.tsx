@@ -1,11 +1,10 @@
-import { Text, View } from 'react-native';
+import { PlaceholderScreen } from '../components/placeholder-screen';
 
 export default function RaceDetailScreen() {
   return (
-    <View>
-      <Text>Race details</Text>
-
-      <Text>Race information will appear here.</Text>
-    </View>
+    <PlaceholderScreen
+      title="Race details"
+      description="Race information and your friends' submission status will appear here."
+    />
   );
 }
