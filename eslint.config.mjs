@@ -7,7 +7,14 @@ import globals from 'globals';
 
 export default tseslint.config(
   {
-    ignores: ['**/node_modules/**', '**/dist/**', '**/.expo/**', 'apps/api/drizzle/**', 'docs/**'],
+    ignores: [
+      '**/node_modules/**',
+      '**/dist/**',
+      '**/.expo/**',
+      '**/expo-env.d.ts',
+      'apps/api/drizzle/**',
+      'docs/**',
+    ],
   },
   js.configs.recommended,
   ...tseslint.configs.recommended,
@@ -19,7 +26,7 @@ export default tseslint.config(
     },
   },
   {
-    files: ['**/*.config.js', '**/babel.config.js', '**/metro.config.js'],
+    files: ['**/*.config.js', 'apps/mobile/theme/*.js'],
     languageOptions: { sourceType: 'commonjs', globals: globals.node },
     rules: { '@typescript-eslint/no-require-imports': 'off' },
   },

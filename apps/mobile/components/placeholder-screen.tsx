@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 
 type PlaceholderScreenProps = {
   title: string;
@@ -9,25 +9,12 @@ type PlaceholderScreenProps = {
 
 export function PlaceholderScreen({ title, description, children }: PlaceholderScreenProps) {
   return (
-    <View style={styles.container}>
-      <Text accessibilityRole="header" style={styles.title}>
+    <View className="flex-1 items-center justify-center gap-4 bg-background p-6">
+      <Text accessibilityRole="header" className="text-center text-3xl font-bold text-foreground">
         {title}
       </Text>
-      <Text style={styles.description}>{description}</Text>
+      <Text className="text-center text-base leading-6 text-muted">{description}</Text>
       {children}
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#09090b',
-    padding: 24,
-    gap: 16,
-  },
-  title: { color: '#fafafa', fontSize: 28, fontWeight: '700', textAlign: 'center' },
-  description: { color: '#a1a1aa', fontSize: 16, lineHeight: 24, textAlign: 'center' },
-});

@@ -1,4 +1,4 @@
-import { PlaceholderScreen } from '../../components/placeholder-screen';
+import { PlaceholderScreen } from '@/components/placeholder-screen';
 
 export default function SettingsScreen() {
   return (

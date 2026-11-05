@@ -6,14 +6,18 @@
     "version": "0.1.0",
     "orientation": "portrait",
     "userInterfaceStyle": "dark",
-    "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "cc.w11core.lightsout"
     },
     "android": {
-      "package": "cc.w11core.lightsout"
+      "package": "cc.w11core.lightsout",
+      "predictiveBackGestureEnabled": false
     },
-    "plugins": ["expo-router"]
+    "plugins": ["expo-router"],
+    "experiments": {
+      "typedRoutes": true,
+      "reactCompiler": true
+    }
   }
 }
