@@ -206,7 +206,7 @@ Feature: Mobile state and data libraries
   Scenario: State libraries are wired
     Given the app needs both local UI state and server data
     When the store and query client are set up
-    Then Zustand manages local/UI state (in-progress prediction draft, active friend group)
+    Then Zustand manages local/UI state (in-progress prediction draft, auth session)
     And TanStack Query manages all server data with caching, backed by hooks that wrap every call to the backend API
 
   Scenario: Screens consume data only through hooks
