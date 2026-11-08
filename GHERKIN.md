@@ -1,6 +1,6 @@
 # Lights Out Backlog
 
-Each ticket below has a Gherkin scenario and an assignee. Ricky handles the backend and home lab deployment, plus the mobile app's state management/data-fetching setup, native notification feature, offline caching, and the Leaderboard and Join Group screens (which build directly on backend endpoints he wrote). Nikola handles the app shell/navigation and the rest of the mobile screens. Either of us can pick up any ticket if the other is stuck.
+Each ticket below has a Gherkin scenario and an assignee. Ricky handles the backend and home lab deployment, plus the mobile app's state management/data-fetching setup, native notification feature, offline caching, and the Login/Register, Leaderboard, and Join Group screens (which build directly on backend endpoints he wrote). Nikola handles the app shell/navigation and the rest of the mobile screens. Either of us can pick up any ticket if the other is stuck.
 
 - Current stack decision: mobile `Expo (React Native)` with `NativeWind` for styling, backend `Fastify + Drizzle + PostgreSQL`, state `Zustand + TanStack Query`
 - See `docs/project-specification.md` for the full spec this backlog implements
@@ -577,4 +577,96 @@ Feature: One friend group per user
     Given a user is not in a group yet
     When several create or join requests for them arrive at the same time
     Then they end up in exactly one group
+```
+
+## LO-26 Mobile: login and register screens
+
+**Assignee: Ricky**
+
+_(implements user story 8)_
+
+```gherkin
+Feature: Login and register screens
+
+  Scenario: A new user creates an account
+    Given the user has no account yet
+    When they register with a display name, email, and a password of at least 8 characters
+    Then they are signed in
+    And they continue to onboarding because they are not in a group yet
+
+  Scenario: An existing user signs in
+    Given the user has an account and is in a friend group
+    When they sign in with their email and password
+    Then they land on the Predict tab
+
+  Scenario: Wrong credentials are rejected
+    Given the user is on the Login screen
+    When they sign in with a wrong password
+    Then a clear error is shown
+    And the email they entered is kept
+
+  Scenario: An email that is already registered is rejected
+    Given an account already exists for an email
+    When someone registers with that email
+    Then a clear error is shown instead of a generic failure
+
+  Scenario: A saved session skips the Login screen
+    Given the user signed in earlier and their session is still valid
+    When they open the app
+    Then they go straight to the tabs without seeing Login
+
+  Scenario: An expired session returns to Login
+    Given the user's session can no longer be refreshed
+    When the app makes a request
+    Then they are returned to the Login screen
+    And no data from the previous session is shown
+```
+
+## LO-27 Backend: season driver list endpoint
+
+**Assignee: Ricky**
+
+_(implements user story 2)_
+
+```gherkin
+Feature: Season driver list endpoint
+
+  Scenario: The current season's drivers are listed
+    Given the current season's drivers are known to Jolpica-F1
+    When the driver list is requested
+    Then each driver is returned with the driver code used in predictions and their display name
+    And the list is served from our own cache rather than calling Jolpica-F1 on every request
+
+  Scenario: A prediction with an unknown driver is rejected
+    Given a driver code is not in the current season's driver list
+    When a prediction containing that code is submitted
+    Then the request is rejected with a 400
+    And no prediction is saved
+```
+
+## LO-28 Mobile: settings screen
+
+**Assignee: Nikola**
+
+_(implements user stories 4 and 8)_
+
+```gherkin
+Feature: Settings screen
+
+  Scenario: The friend group can be shared from Settings
+    Given the user is in a friend group
+    When they open Settings
+    Then the group's name and invite code are shown
+    And the invite code can be copied or shared
+
+  Scenario: Reminder status matches the notification permission
+    Given the user has granted or denied notification permission
+    When they open Settings
+    Then lockout reminders are shown as on or off accordingly
+
+  Scenario: The user can sign out
+    Given the user is signed in
+    When they sign out from Settings
+    Then they are returned to the Login screen
+    And no data from their session remains visible
 ```
