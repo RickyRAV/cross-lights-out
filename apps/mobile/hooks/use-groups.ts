@@ -13,9 +13,10 @@ export const myGroupsQuery = queryOptions({
   queryFn: ({ signal }) => apiRequest('/groups', groupListResponseSchema, { signal }),
 });
 
-export function useMyGroup() {
+export function useMyGroup({ enabled = true }: { enabled?: boolean } = {}) {
   return useQuery({
     ...myGroupsQuery,
+    enabled,
     select: (groups): GroupResponse | null => groups[0] ?? null,
   });
 }

@@ -5,6 +5,7 @@ module.exports = {
   border: '#27272a',
   foreground: '#f5f5f5',
   muted: '#8b8b92',
+  subtle: '#5c5c63',
   accent: '#e10600',
   'accent-deep': '#5c0300',
   'on-accent': '#ffffff',
