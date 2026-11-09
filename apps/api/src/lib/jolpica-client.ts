@@ -26,7 +26,7 @@ interface JolpicaResultsResponse {
       Races: Array<{
         Results: Array<{
           position: string;
-          Driver: { code: string };
+          Driver: { code?: string; driverId: string };
         }>;
       }>;
     };
@@ -89,9 +89,13 @@ export function createJolpicaClient(baseUrl: string): JolpicaClient {
         return undefined;
       }
 
-      return race.Results.sort((a, b) => Number(a.position) - Number(b.position))
-        .slice(0, 5)
-        .map((result) => result.Driver.code);
+      return (
+        race.Results.sort((a, b) => Number(a.position) - Number(b.position))
+          .slice(0, 5)
+          // Some drivers who do race have no code. Their driverId keeps the finishing slot
+          // without ever matching a pick, since picks are validated against coded drivers.
+          .map((result) => result.Driver.code ?? result.Driver.driverId)
+      );
     },
     async fetchCurrentSeasonDrivers() {
       const response = await fetch(`${baseUrl}/current/drivers.json?limit=100`);
