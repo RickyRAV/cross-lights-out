@@ -28,6 +28,7 @@ describe('StandingRow', () => {
     expect(screen.getByText('1 race scored')).toBeOnTheScreen();
     expect(screen.getByText('NP')).toBeOnTheScreen();
     expect(screen.getByText('3 races scored')).toBeOnTheScreen();
+    expect(screen.getAllByText('You')).toHaveLength(1);
   });
 
   it('ranks by points, shares a rank on ties and marks the current user', async () => {

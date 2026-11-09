@@ -45,7 +45,7 @@ export function PredictionSummary({
             saved && !closed && <StatusPill label="Submitted" />
           )}
         </View>
-        {missed && (
+        {missed && !closed && (
           <Text accessibilityRole="alert" className="pt-3 text-[13px] leading-5 text-accent">
             Your prediction didn't count because you were offline until after lockout.
           </Text>

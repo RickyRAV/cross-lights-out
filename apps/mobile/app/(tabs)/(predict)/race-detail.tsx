@@ -156,7 +156,14 @@ function RaceMembers({ race }: { race: RaceResponse }) {
             {race.circuit}
           </Text>
           <Text selectable className="text-sm text-muted">
-            Predictions close: {new Date(race.lockoutAt).toLocaleString()}
+            Predictions close:{' '}
+            {new Date(race.lockoutAt).toLocaleString(undefined, {
+              month: 'short',
+              day: 'numeric',
+              year: 'numeric',
+              hour: 'numeric',
+              minute: '2-digit',
+            })}
           </Text>
         </View>
         <Text className="text-sm font-semibold text-muted">

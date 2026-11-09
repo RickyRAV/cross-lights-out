@@ -8,7 +8,7 @@ import { StaleDataBanner } from '@/components/screen-status';
 import { useClock } from '@/hooks/use-clock';
 import { useOnline } from '@/hooks/use-online';
 import { useRaces } from '@/hooks/use-races';
-import { myPredictionQuery } from '@/hooks/use-predictions';
+import { myPredictionQuery, useQueuedPrediction } from '@/hooks/use-predictions';
 import { latestClosedRace, nextRace } from '@/lib/race-calendar';
 import colors from '@/theme/colors';
 
@@ -26,6 +26,7 @@ function PredictContent() {
   const now = useClock();
   const race = data ? nextRace(data, now) : null;
   const closedRace = data ? latestClosedRace(data, now) : null;
+  const missedClosedRace = useQueuedPrediction(closedRace?.raceId)?.state === 'missed';
   const online = useOnline();
   const offline = fetchStatus === 'paused' || !online;
   const [pulling, setPulling] = useState(false);
@@ -98,6 +99,17 @@ function PredictContent() {
         />
       }
     >
+      {missedClosedRace && closedRace && (
+        <View className="px-5 pt-5">
+          <Text
+            accessibilityRole="alert"
+            className="rounded-xl border border-accent p-4 text-[13px] leading-5 text-accent"
+          >
+            Your {closedRace.name} prediction didn't count because you were offline until after
+            lockout.
+          </Text>
+        </View>
+      )}
       {(error || offline) && (
         <View className="p-5">
           <StaleDataBanner

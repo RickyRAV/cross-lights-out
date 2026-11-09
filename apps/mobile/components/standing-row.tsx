@@ -16,9 +16,12 @@ export function StandingRow({ entry, isMe }: { entry: RankedEntry; isMe: boolean
         color={isMe ? 'self' : chipColor(entry.userId)}
       />
       <View className="flex-1 gap-0.5">
-        <Text numberOfLines={1} className="text-[15px] font-semibold text-foreground">
-          {entry.displayName}
-        </Text>
+        <View className="flex-row items-center gap-2">
+          <Text numberOfLines={1} className="shrink text-[15px] font-semibold text-foreground">
+            {entry.displayName}
+          </Text>
+          {isMe && <Text className="text-[11px] font-semibold text-accent">You</Text>}
+        </View>
         <Text className="text-xs text-muted">{races}</Text>
       </View>
       <View className="items-end">
