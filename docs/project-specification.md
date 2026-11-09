@@ -1,5 +1,7 @@
 # Project Specification: Lights Out
 
+**GitHub repository: https://github.com/RickyRAV/cross-lights-out**
+
 ## 2.1 Project Introduction
 
 - **Team members**: Ricky Raveanu (RickyRAV), Nikola Petrovic (Nikola-Petro)
