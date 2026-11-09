@@ -24,6 +24,8 @@ export function PredictionSummary({
   const saved = prediction.data;
   const picks = saved?.predictedOrder ?? (closed ? [] : (draft ?? []));
 
+  if (closed && saved === null) return null;
+
   return (
     <View>
       <RaceHero race={race} now={now} submitted={!!saved} closed={closed} />
@@ -182,6 +184,13 @@ function RaceHero({
         </Text>
         <Text accessibilityRole="header" className="text-[22px] font-bold text-foreground">
           {race.name}
+        </Text>
+        <Text className="text-[13px] text-muted">
+          {new Date(race.lockoutAt).toLocaleDateString(undefined, {
+            day: 'numeric',
+            month: 'short',
+            year: 'numeric',
+          })}
         </Text>
         {closed ? (
           <Text className="text-[13px] text-muted">Results after the session ends</Text>
