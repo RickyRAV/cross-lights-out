@@ -66,6 +66,7 @@ function fakeScoresRepository(): ScoresRepository & { inserted: NewScore[] } {
 
 function fakeJolpicaClient(results: Record<string, string[] | undefined>): JolpicaClient {
   return {
+    fetchCurrentSeasonDrivers: async () => [],
     fetchCurrentSeasonSchedule: async (): Promise<JolpicaRace[]> => {
       throw new Error('not used in this test');
     },
@@ -173,6 +174,7 @@ describe('gradingService.gradeFinishedRaces', () => {
     const scoresRepository = fakeScoresRepository();
     let fetchCalls = 0;
     const jolpicaClient: JolpicaClient = {
+      fetchCurrentSeasonDrivers: async () => [],
       fetchCurrentSeasonSchedule: async () => {
         throw new Error('not used in this test');
       },

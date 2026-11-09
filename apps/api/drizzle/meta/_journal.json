@@ -36,6 +36,13 @@
       "when": 1790503528992,
       "tag": "0004_nosy_chimera",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1794183913511,
+      "tag": "0005_illegal_killmonger",
+      "breakpoints": true
     }
   ]
 }

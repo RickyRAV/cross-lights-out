@@ -33,9 +33,27 @@ interface JolpicaResultsResponse {
   };
 }
 
+interface JolpicaDriversResponse {
+  MRData: {
+    DriverTable: {
+      Drivers: Array<{
+        code?: string;
+        givenName: string;
+        familyName: string;
+      }>;
+    };
+  };
+}
+
+export interface JolpicaDriver {
+  code: string;
+  name: string;
+}
+
 export interface JolpicaClient {
   fetchCurrentSeasonSchedule(): Promise<JolpicaRace[]>;
   fetchRaceResult(raceId: string): Promise<string[] | undefined>;
+  fetchCurrentSeasonDrivers(): Promise<JolpicaDriver[]>;
 }
 
 export function createJolpicaClient(baseUrl: string): JolpicaClient {
@@ -74,6 +92,20 @@ export function createJolpicaClient(baseUrl: string): JolpicaClient {
       return race.Results.sort((a, b) => Number(a.position) - Number(b.position))
         .slice(0, 5)
         .map((result) => result.Driver.code);
+    },
+    async fetchCurrentSeasonDrivers() {
+      const response = await fetch(`${baseUrl}/current/drivers.json?limit=100`);
+      if (!response.ok) {
+        throw new Error(`Jolpica-F1 request failed with status ${response.status}`);
+      }
+
+      const body = (await response.json()) as JolpicaDriversResponse;
+      // Reserve and practice-only drivers have no code, and results are graded by code.
+      return body.MRData.DriverTable.Drivers.flatMap((driver) =>
+        driver.code
+          ? [{ code: driver.code, name: `${driver.givenName} ${driver.familyName}` }]
+          : [],
+      );
     },
   };
 }

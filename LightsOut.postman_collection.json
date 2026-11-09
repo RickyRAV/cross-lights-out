@@ -442,6 +442,52 @@
           "response": []
         },
         {
+          "name": "List Drivers (checks the predicted codes are real)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var drivers = pm.response.json();",
+                  "pm.test(\"Status 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"driver list is not empty\", function () { pm.expect(drivers.length).to.be.above(0); });",
+                  "pm.test(\"every driver has a code and a name\", function () {",
+                  "    drivers.forEach(function (driver) {",
+                  "        pm.expect(driver.code).to.be.a(\"string\").and.not.empty;",
+                  "        pm.expect(driver.name).to.be.a(\"string\").and.not.empty;",
+                  "    });",
+                  "});",
+                  "pm.test(\"the codes used by Submit Prediction are current drivers\", function () {",
+                  "    var codes = drivers.map(function (driver) { return driver.code; });",
+                  "    pm.expect(codes).to.include.members([\"VER\", \"NOR\", \"LEC\", \"HAM\", \"RUS\"]);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenOne}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseURL}}/api/v1/drivers",
+              "host": ["{{baseURL}}"],
+              "path": ["api", "v1", "drivers"]
+            }
+          },
+          "response": []
+        },
+        {
           "name": "Get Race Result - Graded (User One)",
           "event": [
             {
@@ -603,6 +649,57 @@
               "mode": "raw",
               "raw": "{\n    \"raceId\": \"{{raceId}}\",\n    \"predictedOrder\": [\"VER\", \"VER\", \"LEC\", \"HAM\", \"RUS\"]\n}",
               "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseURL}}/api/v1/predictions",
+              "host": ["{{baseURL}}"],
+              "path": ["api", "v1", "predictions"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Submit Prediction - Unknown Driver (expect 400)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status 400\", function () { pm.response.to.have.status(400); });",
+                  "pm.test(\"rejected as UnknownDriver\", function () {",
+                  "    pm.expect(pm.response.json().error).to.eql(\"UnknownDriver\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenOne}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"raceId\": \"{{raceId}}\",\n    \"predictedOrder\": [\"VER\", \"NOR\", \"LEC\", \"HAM\", \"XXX\"]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             },
             "url": {
               "raw": "{{baseURL}}/api/v1/predictions",
