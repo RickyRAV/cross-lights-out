@@ -20,8 +20,8 @@ describe('GET /api/v1/drivers', () => {
     const app = await buildTestApp({
       driversService: stubDriversService({
         listDrivers: async () => [
-          { code: 'HAM', name: 'Lewis Hamilton' },
-          { code: 'VER', name: 'Max Verstappen' },
+          { code: 'HAM', name: 'Lewis Hamilton', team: 'ferrari' },
+          { code: 'VER', name: 'Max Verstappen', team: null },
         ],
       }),
     });
@@ -35,8 +35,8 @@ describe('GET /api/v1/drivers', () => {
 
     expect(response.statusCode).toBe(200);
     expect(response.json()).toEqual([
-      { code: 'HAM', name: 'Lewis Hamilton' },
-      { code: 'VER', name: 'Max Verstappen' },
+      { code: 'HAM', name: 'Lewis Hamilton', team: 'ferrari' },
+      { code: 'VER', name: 'Max Verstappen', team: null },
     ]);
   });
 });

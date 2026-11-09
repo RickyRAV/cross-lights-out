@@ -6,6 +6,7 @@ import type { JolpicaDriver } from '../lib/jolpica-client';
 export interface DriverRow {
   code: string;
   name: string;
+  team: string | null;
   cachedAt: Date;
 }
 

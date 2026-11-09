@@ -33,26 +33,28 @@ function fakeJolpica(result: JolpicaDriver[] | Error) {
 }
 
 const cachedAgo = (ms: number): DriverRow[] => [
-  { code: 'HAM', name: 'Lewis Hamilton', cachedAt: new Date(Date.now() - ms) },
+  { code: 'HAM', name: 'Lewis Hamilton', team: 'ferrari', cachedAt: new Date(Date.now() - ms) },
 ];
 
 describe('driversService.listDrivers', () => {
   it('serves a fresh cache without calling Jolpica-F1', async () => {
-    const jolpicaClient = fakeJolpica([{ code: 'VER', name: 'Max Verstappen' }]);
+    const jolpicaClient = fakeJolpica([{ code: 'VER', name: 'Max Verstappen', team: 'red_bull' }]);
     const service = createDriversService({
       driversRepository: fakeDriversRepository(cachedAgo(HOUR)),
       jolpicaClient,
       cacheTtlHours: 24,
     });
 
-    expect(await service.listDrivers()).toEqual([{ code: 'HAM', name: 'Lewis Hamilton' }]);
+    expect(await service.listDrivers()).toEqual([
+      { code: 'HAM', name: 'Lewis Hamilton', team: 'ferrari' },
+    ]);
     expect(jolpicaClient.calls).toBe(0);
   });
 
   it('replaces a stale cache with the current season drivers', async () => {
     const jolpicaClient = fakeJolpica([
-      { code: 'VER', name: 'Max Verstappen' },
-      { code: 'NOR', name: 'Lando Norris' },
+      { code: 'VER', name: 'Max Verstappen', team: 'red_bull' },
+      { code: 'NOR', name: 'Lando Norris', team: 'mclaren' },
     ]);
     const service = createDriversService({
       driversRepository: fakeDriversRepository(cachedAgo(25 * HOUR)),
@@ -61,8 +63,8 @@ describe('driversService.listDrivers', () => {
     });
 
     expect(await service.listDrivers()).toEqual([
-      { code: 'NOR', name: 'Lando Norris' },
-      { code: 'VER', name: 'Max Verstappen' },
+      { code: 'NOR', name: 'Lando Norris', team: 'mclaren' },
+      { code: 'VER', name: 'Max Verstappen', team: 'red_bull' },
     ]);
     expect(jolpicaClient.calls).toBe(1);
   });
@@ -74,7 +76,9 @@ describe('driversService.listDrivers', () => {
       cacheTtlHours: 24,
     });
 
-    expect(await service.listDrivers()).toEqual([{ code: 'HAM', name: 'Lewis Hamilton' }]);
+    expect(await service.listDrivers()).toEqual([
+      { code: 'HAM', name: 'Lewis Hamilton', team: 'ferrari' },
+    ]);
   });
 
   it('fails when Jolpica-F1 is down and nothing is cached yet', async () => {
@@ -94,7 +98,9 @@ describe('driversService.listDrivers', () => {
       cacheTtlHours: 24,
     });
 
-    expect(await service.listDrivers()).toEqual([{ code: 'HAM', name: 'Lewis Hamilton' }]);
+    expect(await service.listDrivers()).toEqual([
+      { code: 'HAM', name: 'Lewis Hamilton', team: 'ferrari' },
+    ]);
   });
 });
 
