@@ -111,7 +111,7 @@ export default function PredictScreen() {
               </Text>
             </View>
             <PredictionSummary key={race.raceId} race={race} />
-            <Link href="/race-detail" asChild>
+            <Link href={{ pathname: '/race-detail', params: { raceId: race.raceId } }} asChild>
               <Pressable
                 accessibilityRole="link"
                 className="min-h-12 items-center justify-center rounded-xl border border-border px-5 py-3"

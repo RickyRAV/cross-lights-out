@@ -44,8 +44,16 @@ export function useMyPrediction(raceId: string) {
   return useQuery(myPredictionQuery(raceId));
 }
 
-export function useGroupPredictions(groupId: string | undefined, raceId: string) {
-  return useQuery(groupPredictionsQuery(groupId, raceId));
+export function useGroupPredictions(
+  groupId: string | undefined,
+  raceId: string,
+  { live = false }: { live?: boolean } = {},
+) {
+  return useQuery({
+    ...groupPredictionsQuery(groupId, raceId),
+    refetchInterval: live ? 15_000 : false,
+    refetchIntervalInBackground: false,
+  });
 }
 
 export function useSubmitPrediction() {
