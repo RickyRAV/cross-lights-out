@@ -79,6 +79,7 @@ export default function SettingsScreen() {
           {(me.error || me.fetchStatus === 'paused') && (
             <StaleDataBanner
               what="account details"
+              updatedAt={me.dataUpdatedAt}
               offline={me.fetchStatus === 'paused'}
               retrying={me.isFetching}
               onRetry={() => {
@@ -123,6 +124,7 @@ export default function SettingsScreen() {
           {(group.error || group.fetchStatus === 'paused') && (
             <StaleDataBanner
               what="group details"
+              updatedAt={group.dataUpdatedAt}
               offline={group.fetchStatus === 'paused'}
               retrying={group.isFetching}
               onRetry={() => {
