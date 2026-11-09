@@ -8,7 +8,7 @@ import { StaleDataBanner } from '@/components/screen-status';
 import { useClock } from '@/hooks/use-clock';
 import { useRaces } from '@/hooks/use-races';
 import { myPredictionQuery } from '@/hooks/use-predictions';
-import { nextRace } from '@/lib/race-calendar';
+import { latestClosedRace, nextRace } from '@/lib/race-calendar';
 import colors from '@/theme/colors';
 
 export default function PredictScreen() {
@@ -24,6 +24,7 @@ function PredictContent() {
   const queryClient = useQueryClient();
   const now = useClock();
   const race = data ? nextRace(data, now) : null;
+  const closedRace = data ? latestClosedRace(data, now) : null;
   const offline = fetchStatus === 'paused';
   const [pulling, setPulling] = useState(false);
   const retry = () => {
@@ -34,9 +35,11 @@ function PredictContent() {
     try {
       await Promise.all([
         refetch(),
-        race
-          ? queryClient.invalidateQueries({ queryKey: myPredictionQuery(race.raceId).queryKey })
-          : Promise.resolve(),
+        ...[race, closedRace]
+          .filter((item) => item !== null)
+          .map((item) =>
+            queryClient.invalidateQueries({ queryKey: myPredictionQuery(item.raceId).queryKey }),
+          ),
       ]);
     } finally {
       setPulling(false);
@@ -118,6 +121,9 @@ function PredictContent() {
             updates.
           </Text>
         </View>
+      )}
+      {closedRace && (
+        <PredictionSummary key={closedRace.raceId} race={closedRace} now={now} closed />
       )}
     </ScrollView>
   );
