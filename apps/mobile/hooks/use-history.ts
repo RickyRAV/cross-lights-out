@@ -7,6 +7,11 @@ export const historyQuery = queryOptions({
   queryFn: ({ signal }) => apiRequest('/users/me/history', historyResponseSchema, { signal }),
 });
 
-export function useHistory() {
-  return useQuery(historyQuery);
+export function useHistory({ live = false }: { live?: boolean } = {}) {
+  return useQuery({
+    ...historyQuery,
+    refetchInterval: (query) =>
+      live && query.state.data?.some((entry) => entry.points === null) ? 30_000 : false,
+    refetchIntervalInBackground: false,
+  });
 }
