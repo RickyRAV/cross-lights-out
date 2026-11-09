@@ -6,6 +6,7 @@
     "version": "0.1.0",
     "orientation": "portrait",
     "userInterfaceStyle": "dark",
+    "backgroundColor": "#0b0b0d",
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "cc.w11core.lightsout"
