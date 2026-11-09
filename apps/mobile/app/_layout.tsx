@@ -2,6 +2,7 @@ import '@/global.css';
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
 import { router, SplashScreen, Stack, ThemeProvider } from 'expo-router';
 import { useEffect, useRef } from 'react';
+import { ActivityIndicator, View } from 'react-native';
 import { ConnectionError } from '@/components/connection-error';
 import { useMyGroup } from '@/hooks/use-groups';
 import {
@@ -13,6 +14,7 @@ import { CACHE_MAX_AGE, persister, queryClient, resumeQueuedMutations } from '@/
 import '@/lib/reminders';
 import { useAuthStore } from '@/store/auth';
 import { useOnboardingStore } from '@/store/onboarding';
+import colors from '@/theme/colors';
 import { navigationTheme } from '@/theme/navigation';
 
 SplashScreen.preventAutoHideAsync();
@@ -48,7 +50,17 @@ function RootNavigator() {
     if (ready) SplashScreen.hide();
   }, [ready]);
 
-  if (!ready) return null;
+  if (!ready) {
+    return (
+      <View
+        accessibilityLabel="Loading"
+        accessibilityState={{ busy: true }}
+        className="flex-1 items-center justify-center bg-background"
+      >
+        <ActivityIndicator color={colors.accent} />
+      </View>
+    );
+  }
 
   if (signedIn && group.data === undefined) {
     return <ConnectionError onRetry={() => group.refetch()} />;

@@ -5,8 +5,14 @@ import {
   type GroupResponse,
   type JoinGroupRequest,
 } from '@lightsout/shared';
-import { queryOptions, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { apiRequest } from '@/lib/api';
+import {
+  queryOptions,
+  useMutation,
+  useQuery,
+  useQueryClient,
+  type QueryClient,
+} from '@tanstack/react-query';
+import { ApiError, apiRequest } from '@/lib/api';
 import { useOnboardingStore } from '@/store/onboarding';
 
 export const myGroupsQuery = queryOptions({
@@ -22,6 +28,15 @@ export function useMyGroup({ enabled = true }: { enabled?: boolean } = {}) {
   });
 }
 
+function recheckMembership(queryClient: QueryClient, error: Error) {
+  const outcomeUnknown =
+    !(error instanceof ApiError) ||
+    error.status === 0 ||
+    error.status >= 500 ||
+    error.code === 'AlreadyInGroup';
+  if (outcomeUnknown) return queryClient.invalidateQueries({ queryKey: myGroupsQuery.queryKey });
+}
+
 export function useCreateGroup() {
   const queryClient = useQueryClient();
   return useMutation({
@@ -31,6 +46,7 @@ export function useCreateGroup() {
       useOnboardingStore.getState().showCreatedGroup(group);
       queryClient.setQueryData(myGroupsQuery.queryKey, [group]);
     },
+    onError: (error) => recheckMembership(queryClient, error),
   });
 }
 
@@ -40,5 +56,6 @@ export function useJoinGroup() {
     mutationFn: (body: JoinGroupRequest) =>
       apiRequest('/groups/join', groupResponseSchema, { method: 'POST', body }),
     onSuccess: (group) => queryClient.setQueryData(myGroupsQuery.queryKey, [group]),
+    onError: (error) => recheckMembership(queryClient, error),
   });
 }
