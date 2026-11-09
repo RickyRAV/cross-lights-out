@@ -1,8 +1,9 @@
 import { Modal, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ActionButton, AvatarChip } from '@/components/race-ui';
+import { ActionButton, DriverChip } from '@/components/race-ui';
 
 type PredictionConfirmationProps = {
+  drivers?: readonly DriverResponse[];
   order: string[] | null;
   raceName: string;
   updating: boolean;
@@ -13,6 +14,7 @@ type PredictionConfirmationProps = {
 };
 
 export function PredictionConfirmation({
+  drivers,
   order,
   raceName,
   updating,
@@ -51,7 +53,10 @@ export function PredictionConfirmation({
                   className={`min-h-14 flex-row items-center gap-3 py-2 ${index < order.length - 1 ? 'border-b border-border' : ''}`}
                 >
                   <Text className="w-5 text-sm font-semibold text-muted">{index + 1}.</Text>
-                  <AvatarChip code={code} />
+                  <DriverChip
+                    code={code}
+                    team={drivers?.find((driver) => driver.code === code)?.team}
+                  />
                   <Text className="text-base font-semibold text-foreground">{code}</Text>
                 </View>
               ))}
@@ -74,3 +79,4 @@ export function PredictionConfirmation({
     </Modal>
   );
 }
+import type { DriverResponse } from '@lightsout/shared';
