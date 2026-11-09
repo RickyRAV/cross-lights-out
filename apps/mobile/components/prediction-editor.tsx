@@ -22,6 +22,10 @@ export function PredictionEditor({ race }: { race: RaceResponse }) {
   const submitting = useRef(false);
   const draft = usePredictionDraftStore((state) => state.drafts[race.raceId]);
   const picks = draft ?? prediction.data?.predictedOrder ?? [];
+  const unchanged =
+    !!prediction.data &&
+    picks.length === prediction.data.predictedOrder.length &&
+    picks.every((code, index) => code === prediction.data?.predictedOrder[index]);
   const deadline = Date.parse(race.lockoutAt);
   const locked = serverLocked || now >= deadline;
   const busy = submission.isPending;
@@ -52,7 +56,7 @@ export function PredictionEditor({ race }: { race: RaceResponse }) {
   };
 
   const confirm = () => {
-    if (busy || confirmation || submitting.current || locked) return;
+    if (busy || confirmation || submitting.current || locked || unchanged) return;
     const body = { raceId: race.raceId, predictedOrder: [...picks] };
     if (!submitPredictionRequestSchema.safeParse(body).success) return;
     if (
@@ -69,6 +73,14 @@ export function PredictionEditor({ race }: { race: RaceResponse }) {
 
   const send = () => {
     if (!confirmation || busy || submitting.current) return;
+    if (
+      prediction.data &&
+      confirmation.length === prediction.data.predictedOrder.length &&
+      confirmation.every((code, index) => code === prediction.data?.predictedOrder[index])
+    ) {
+      setConfirmation(null);
+      return;
+    }
     if (Date.now() >= deadline || locked) {
       setConfirmation(null);
       setServerLocked(true);
@@ -330,7 +342,7 @@ export function PredictionEditor({ race }: { race: RaceResponse }) {
               busy ? 'Submitting…' : prediction.data ? 'Update prediction' : 'Submit prediction'
             }
             accessibilityState={{ busy }}
-            disabled={!valid || busy}
+            disabled={!valid || busy || unchanged}
             onPress={confirm}
           />
           <ActionButton
