@@ -43,6 +43,13 @@
       "when": 1794183913511,
       "tag": "0005_illegal_killmonger",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1794240536234,
+      "tag": "0006_yielding_cassandra_nova",
+      "breakpoints": true
     }
   ]
 }

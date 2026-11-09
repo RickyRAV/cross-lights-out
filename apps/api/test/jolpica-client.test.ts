@@ -82,25 +82,119 @@ describe('jolpicaClient.fetchRaceResult', () => {
   });
 });
 
-describe('jolpicaClient.fetchCurrentSeasonDrivers', () => {
-  it('keeps only drivers with a code and joins their names', async () => {
-    respondWith({
-      MRData: {
-        DriverTable: {
-          Drivers: [
-            { code: 'ALB', givenName: 'Alexander', familyName: 'Albon' },
-            { givenName: 'Paul', familyName: 'Aron' },
-            { code: 'ANT', givenName: 'Andrea Kimi', familyName: 'Antonelli' },
+function respondByPath(routes: Record<string, unknown>) {
+  const fetchMock = vi.fn(async (url: string) => {
+    const path = Object.keys(routes).find((candidate) => url.includes(candidate));
+    const body = path === undefined ? undefined : routes[path];
+    return body === undefined
+      ? new Response('not found', { status: 404 })
+      : new Response(JSON.stringify(body), { status: 200 });
+  });
+  vi.stubGlobal('fetch', fetchMock);
+}
+
+const seasonDrivers = {
+  MRData: {
+    DriverTable: {
+      Drivers: [
+        { code: 'LAW', givenName: 'Liam', familyName: 'Lawson' },
+        { code: 'OCO', givenName: 'Esteban', familyName: 'Ocon' },
+        { code: 'TSU', givenName: 'Yuki', familyName: 'Tsunoda' },
+        { givenName: 'Paul', familyName: 'Aron' },
+      ],
+    },
+  },
+};
+
+const standings = {
+  MRData: {
+    StandingsTable: {
+      StandingsLists: [
+        {
+          DriverStandings: [
+            {
+              Driver: { code: 'LAW' },
+              Constructors: [{ constructorId: 'rb' }, { constructorId: 'red_bull' }],
+            },
+            { Driver: { code: 'OCO' }, Constructors: [{ constructorId: 'haas' }] },
+            {
+              Driver: { code: 'TSU' },
+              Constructors: [{ constructorId: 'red_bull' }, { constructorId: 'rb' }],
+            },
           ],
         },
-      },
+      ],
+    },
+  },
+};
+
+const lastRace = {
+  MRData: {
+    RaceTable: {
+      Races: [{ Results: [{ Driver: { code: 'LAW' }, Constructor: { constructorId: 'rb' } }] }],
+    },
+  },
+};
+
+describe('jolpicaClient.fetchCurrentSeasonDrivers', () => {
+  it('keeps only drivers with a code and joins their names', async () => {
+    respondByPath({
+      '/current/drivers.json': seasonDrivers,
+      '/driverstandings.json': standings,
+      '/last/results.json': lastRace,
     });
 
     const drivers = await createJolpicaClient('https://jolpica.test').fetchCurrentSeasonDrivers();
 
-    expect(drivers).toEqual([
-      { code: 'ALB', name: 'Alexander Albon' },
-      { code: 'ANT', name: 'Andrea Kimi Antonelli' },
+    expect(drivers.map((driver) => [driver.code, driver.name])).toEqual([
+      ['LAW', 'Liam Lawson'],
+      ['OCO', 'Esteban Ocon'],
+      ['TSU', 'Yuki Tsunoda'],
     ]);
+  });
+
+  it('takes the team from the last race, even when the standings list several', async () => {
+    respondByPath({
+      '/current/drivers.json': seasonDrivers,
+      '/driverstandings.json': standings,
+      '/last/results.json': lastRace,
+    });
+
+    const drivers = await createJolpicaClient('https://jolpica.test').fetchCurrentSeasonDrivers();
+
+    expect(drivers.find((driver) => driver.code === 'LAW')?.team).toBe('rb');
+  });
+
+  it('uses the standings team for a driver who missed the last race but had one team', async () => {
+    respondByPath({
+      '/current/drivers.json': seasonDrivers,
+      '/driverstandings.json': standings,
+      '/last/results.json': lastRace,
+    });
+
+    const drivers = await createJolpicaClient('https://jolpica.test').fetchCurrentSeasonDrivers();
+
+    expect(drivers.find((driver) => driver.code === 'OCO')?.team).toBe('haas');
+  });
+
+  it('leaves the team unknown when it cannot be told apart', async () => {
+    respondByPath({
+      '/current/drivers.json': seasonDrivers,
+      '/driverstandings.json': standings,
+      '/last/results.json': lastRace,
+    });
+
+    const drivers = await createJolpicaClient('https://jolpica.test').fetchCurrentSeasonDrivers();
+
+    expect(drivers.find((driver) => driver.code === 'TSU')?.team).toBeNull();
+  });
+
+  it('still returns the drivers when the team lookups fail', async () => {
+    respondByPath({ '/current/drivers.json': seasonDrivers });
+
+    const drivers = await createJolpicaClient('https://jolpica.test').fetchCurrentSeasonDrivers();
+
+    expect(drivers).toHaveLength(3);
+    expect(drivers.every((driver) => driver.team === null)).toBe(true);
   });
 });

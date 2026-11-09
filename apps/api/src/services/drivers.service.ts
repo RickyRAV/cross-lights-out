@@ -37,7 +37,7 @@ export function createDriversService(deps: {
   return {
     async listDrivers() {
       const rows = await loadDrivers();
-      return rows.map(({ code, name }) => ({ code, name }));
+      return rows.map(({ code, name, team }) => ({ code, name, team }));
     },
     async findUnknownCodes(codes) {
       const known = new Set((await loadDrivers()).map((row) => row.code));
