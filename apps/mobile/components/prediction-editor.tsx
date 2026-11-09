@@ -201,18 +201,6 @@ export function PredictionEditor({ race }: { race: RaceResponse }) {
       />
       <ScrollView className="flex-1 bg-background" contentInsetAdjustmentBehavior="automatic">
         <View className="gap-5 p-5">
-          <View className="gap-2">
-            <Text className="text-xl font-bold text-foreground">{race.name}</Text>
-            <Text className="text-sm leading-5 text-muted">
-              Choose five drivers in finishing order. Tap a selected driver to remove them, or use
-              the arrows to reorder.
-            </Text>
-            {prediction.data && (
-              <Text className="text-sm text-muted">
-                Your saved prediction stays submitted until this update succeeds.
-              </Text>
-            )}
-          </View>
           <Text accessibilityLiveRegion="polite" className="text-sm font-semibold text-muted">
             Your top 5 · {picks.length}/5 selected
           </Text>
