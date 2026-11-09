@@ -30,6 +30,12 @@ function fakePredictionsRepository(seed: Prediction[] = []): PredictionsReposito
     async findByRaceForUsers(raceId, userIds) {
       return store.filter((p) => p.raceId === raceId && userIds.includes(p.userId));
     },
+    async findByRaceId(raceId) {
+      return store.filter((p) => p.raceId === raceId);
+    },
+    async findByUserId(userId) {
+      return store.filter((p) => p.userId === userId);
+    },
   };
 }
 
@@ -44,6 +50,9 @@ function fakeGroupsRepository(
     addMember: async () => true,
     isMember: async (_groupId, userId) => members.some((member) => member.userId === userId),
     listMembers: async () => members,
+    findByUserId: async () => {
+      throw new Error('not used in this test');
+    },
   };
 }
 
@@ -61,6 +70,9 @@ function stubRaceCalendarServiceWithRace(
   return {
     listRaces: async () => (full ? [full] : []),
     getRace: async (raceId) => (full && full.raceId === raceId ? full : undefined),
+    getResult: async () => {
+      throw new Error('not used in this test');
+    },
   };
 }
 

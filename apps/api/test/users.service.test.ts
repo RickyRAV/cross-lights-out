@@ -64,6 +64,9 @@ function fakeScoresRepository(seed: ScoreRow[] = []): ScoresRepository {
     async findByPredictionIds(predictionIds) {
       return seed.filter((row) => predictionIds.includes(row.predictionId));
     },
+    sumPointsByUserIds: async () => {
+      throw new Error('not used in this test');
+    },
   };
 }
 
