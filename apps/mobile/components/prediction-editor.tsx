@@ -3,7 +3,7 @@ import { router } from 'expo-router';
 import { useRef, useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { PredictionConfirmation } from '@/components/prediction-confirmation';
-import { ActionButton, AvatarChip, DriverRows, StatusPill } from '@/components/race-ui';
+import { ActionButton, DriverChip, DriverRows, StatusPill } from '@/components/race-ui';
 import { useClock } from '@/hooks/use-clock';
 import { useDrivers } from '@/hooks/use-drivers';
 import { useMyPrediction, useSubmitPrediction } from '@/hooks/use-predictions';
@@ -158,7 +158,12 @@ export function PredictionEditor({ race }: { race: RaceResponse }) {
             The prediction window has closed. Submitted picks cannot be edited.
           </Text>
           {prediction.data ? (
-            <DriverRows picks={prediction.data.predictedOrder.map((code) => ({ code }))} />
+            <DriverRows
+              picks={prediction.data.predictedOrder.map((code) => ({
+                code,
+                team: drivers.data?.find((driver) => driver.code === code)?.team,
+              }))}
+            />
           ) : (
             <Text className="text-base text-foreground">
               No submitted prediction for this race.
@@ -185,6 +190,7 @@ export function PredictionEditor({ race }: { race: RaceResponse }) {
   return (
     <>
       <PredictionConfirmation
+        drivers={drivers.data}
         order={confirmation}
         raceName={race.name}
         updating={!!prediction.data}
@@ -301,7 +307,7 @@ export function PredictionEditor({ race }: { race: RaceResponse }) {
                       onPress={() => toggle(driver.code)}
                       className={`min-h-16 flex-1 flex-row flex-wrap items-center gap-2 rounded-xl border p-3 ${selected ? 'border-accent bg-accent-deep' : 'border-border bg-raised'} ${disabled && !selected ? 'opacity-40' : ''}`}
                     >
-                      <AvatarChip code={driver.code} />
+                      <DriverChip code={driver.code} team={driver.team} />
                       <View className="min-w-0 flex-1">
                         <Text className="text-sm font-semibold text-foreground">{driver.code}</Text>
                         <Text className="text-xs text-muted">{driver.name}</Text>

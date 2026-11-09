@@ -3,6 +3,7 @@ import { router } from 'expo-router';
 import { Text, View } from 'react-native';
 import { ActionButton, DriverRows, StatusPill } from '@/components/race-ui';
 import { useMyPrediction } from '@/hooks/use-predictions';
+import { useDrivers } from '@/hooks/use-drivers';
 
 export function PredictionSummary({
   race,
@@ -12,6 +13,7 @@ export function PredictionSummary({
   closed?: boolean;
 }) {
   const prediction = useMyPrediction(race.raceId);
+  const drivers = useDrivers();
   const open = () => router.push({ pathname: '/prediction', params: { raceId: race.raceId } });
 
   if (prediction.data === undefined) {
@@ -61,7 +63,12 @@ export function PredictionSummary({
           variant={closed ? 'score' : 'submitted'}
         />
       </View>
-      <DriverRows picks={prediction.data.predictedOrder.map((code) => ({ code }))} />
+      <DriverRows
+        picks={prediction.data.predictedOrder.map((code) => ({
+          code,
+          team: drivers.data?.find((driver) => driver.code === code)?.team,
+        }))}
+      />
       {prediction.error && (
         <Text accessibilityRole="alert" className="text-sm text-muted">
           Couldn't refresh your prediction. Showing the last saved picks.

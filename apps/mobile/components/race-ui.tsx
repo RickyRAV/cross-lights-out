@@ -1,12 +1,12 @@
 import { Pressable, Text, View, type PressableProps } from 'react-native';
+import { driverChipStyle } from '@/theme/driver-colors';
 
-type ChipColor = 'blue' | 'orange' | 'maroon' | 'self';
+type ChipColor = 'blue' | 'orange' | 'self';
 
 const chipColors: Record<ChipColor, string> = {
   blue: 'bg-team-blue',
   orange: 'bg-team-orange',
-  maroon: 'bg-team-maroon',
-  self: 'bg-accent',
+  self: 'bg-avatar-default',
 };
 
 export function AvatarChip({ code, color = 'self' }: { code: string; color?: ChipColor }) {
@@ -23,6 +23,17 @@ type ActionButtonProps = Omit<PressableProps, 'children' | 'className' | 'style'
   label: string;
   secondary?: boolean;
 };
+
+export function DriverChip({ code, team }: { code: string; team?: string | null }) {
+  const style = driverChipStyle(team);
+  return (
+    <View
+      className={`h-9 w-9 shrink-0 items-center justify-center rounded-full ${style.background}`}
+    >
+      <Text className={`text-[10px] font-semibold ${style.text}`}>{code}</Text>
+    </View>
+  );
+}
 
 export function ActionButton({
   label,
@@ -68,7 +79,7 @@ export function StatusPill({
   );
 }
 
-type DriverRow = { code: string; color?: ChipColor };
+type DriverRow = { code: string; team?: string | null };
 
 export function DriverRows({
   picks,
@@ -82,7 +93,7 @@ export function DriverRows({
       {picks.map((pick, index) => {
         const content = (
           <>
-            <AvatarChip code={pick.code} color={pick.color} />
+            <DriverChip code={pick.code} team={pick.team} />
             <Text className="text-[15px] font-semibold text-foreground">
               {index + 1}. {pick.code}
             </Text>
