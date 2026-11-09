@@ -1,51 +1,79 @@
-import { Link } from 'expo-router';
-import { Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
+import { useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import { RefreshControl, ScrollView, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { ActionButton } from '@/components/race-ui';
 import { PredictionSummary } from '@/components/prediction-summary';
+import { StaleDataBanner } from '@/components/screen-status';
 import { useClock } from '@/hooks/use-clock';
 import { useRaces } from '@/hooks/use-races';
-import { countdownParts, latestClosedRace, nextRace } from '@/lib/race-calendar';
+import { myPredictionQuery } from '@/hooks/use-predictions';
+import { nextRace } from '@/lib/race-calendar';
 import colors from '@/theme/colors';
 
 export default function PredictScreen() {
+  return (
+    <SafeAreaView edges={['top', 'left', 'right']} className="flex-1 bg-background">
+      <PredictContent />
+    </SafeAreaView>
+  );
+}
+
+function PredictContent() {
   const { data, error, isFetching, fetchStatus, refetch } = useRaces();
+  const queryClient = useQueryClient();
   const now = useClock();
   const race = data ? nextRace(data, now) : null;
-  const closedRace = data ? latestClosedRace(data, now) : null;
   const offline = fetchStatus === 'paused';
+  const [pulling, setPulling] = useState(false);
   const retry = () => {
     void refetch();
   };
+  const refresh = async () => {
+    setPulling(true);
+    try {
+      await Promise.all([
+        refetch(),
+        race
+          ? queryClient.invalidateQueries({ queryKey: myPredictionQuery(race.raceId).queryKey })
+          : Promise.resolve(),
+      ]);
+    } finally {
+      setPulling(false);
+    }
+  };
 
   if (data === undefined) {
-    if (error || offline) {
+    if (error || offline)
       return (
-        <View className="flex-1 items-center justify-center gap-4 bg-background p-6">
-          <Text accessibilityRole="alert" className="text-center text-xl font-bold text-foreground">
+        <View className="flex-1 items-center justify-center gap-3 px-8">
+          <Text className="text-[32px] text-accent">⚠</Text>
+          <Text
+            accessibilityRole="alert"
+            className="text-center text-[17px] font-semibold text-foreground"
+          >
             {offline ? "You're offline" : "Couldn't load race data"}
           </Text>
-          <Text className="text-center text-base text-muted">
+          <Text className="text-center text-[13px] text-muted">
             Check your connection and try again.
           </Text>
           <ActionButton
             label={isFetching ? 'Retrying…' : 'Retry'}
-            secondary
             onPress={retry}
             disabled={isFetching || offline}
           />
         </View>
       );
-    }
     return (
       <View
         accessibilityLabel="Loading race calendar"
         accessibilityState={{ busy: true }}
-        className="flex-1 gap-4 bg-background p-5"
+        className="gap-4 p-5"
       >
-        <Text className="text-sm text-muted">Loading next race…</Text>
-        <View className="h-40 rounded-2xl bg-raised" />
-        <View className="h-12 rounded-xl bg-raised" />
-        <View className="h-12 rounded-xl bg-raised" />
+        <View className="h-[150px] rounded-2xl bg-raised" />
+        {[0, 1, 2, 3, 4].map((index) => (
+          <View key={index} className="h-11 rounded-[10px] bg-raised" />
+        ))}
       </View>
     );
   }
@@ -56,86 +84,41 @@ export default function PredictScreen() {
       contentInsetAdjustmentBehavior="automatic"
       refreshControl={
         <RefreshControl
-          refreshing={isFetching}
-          onRefresh={retry}
+          refreshing={pulling && isFetching}
+          onRefresh={() => {
+            void refresh();
+          }}
           tintColor={colors.accent}
           colors={[colors.accent]}
         />
       }
     >
-      <View className="gap-6 p-5">
-        {(error || offline) && (
-          <View className="gap-3 rounded-xl border border-border p-4">
-            <Text accessibilityRole="alert" className="text-sm text-muted">
-              {offline
-                ? "You're offline. Showing the last loaded calendar."
-                : "Couldn't refresh. Showing the last loaded calendar."}
-            </Text>
-            <ActionButton
-              label={isFetching ? 'Retrying…' : 'Retry'}
-              secondary
-              onPress={retry}
-              disabled={isFetching || offline}
-            />
-          </View>
-        )}
-        {race ? (
-          <>
-            <View className="gap-2">
-              <Text className="text-sm font-semibold text-muted">Next race</Text>
-              <Text
-                accessibilityRole="header"
-                selectable
-                className="text-3xl font-bold text-foreground"
-              >
-                {race.name}
-              </Text>
-              <Text selectable className="text-base text-muted">
-                {race.circuit}
-              </Text>
-            </View>
-            <View className="gap-4 rounded-2xl bg-surface p-5">
-              <Text className="text-sm font-semibold text-muted">Time until predictions close</Text>
-              <View className="flex-row flex-wrap gap-5">
-                {countdownParts(race.lockoutAt, now).map((part) => (
-                  <View key={part.label} className="gap-1">
-                    <Text className="text-3xl font-bold tabular-nums text-foreground">
-                      {String(part.value).padStart(2, '0')}
-                    </Text>
-                    <Text className="text-xs text-muted">{part.label}</Text>
-                  </View>
-                ))}
-              </View>
-              <Text selectable className="text-sm leading-5 text-muted">
-                Predictions close: {new Date(race.lockoutAt).toLocaleString()}
-              </Text>
-            </View>
-            <PredictionSummary key={race.raceId} race={race} />
-            <Link href={{ pathname: '/race-detail', params: { raceId: race.raceId } }} asChild>
-              <Pressable
-                accessibilityRole="link"
-                className="min-h-12 items-center justify-center rounded-xl border border-border px-5 py-3"
-              >
-                <Text className="text-lg font-semibold text-accent">View race details</Text>
-              </Pressable>
-            </Link>
-          </>
-        ) : (
-          <View className="gap-4 py-12">
-            <Text
-              accessibilityRole="header"
-              className="text-center text-xl font-bold text-foreground"
-            >
-              No upcoming races
-            </Text>
-            <Text className="text-center text-base leading-6 text-muted">
-              There are no open prediction windows in the current calendar. Pull down to check for
-              updates.
-            </Text>
-          </View>
-        )}
-        {closedRace && <PredictionSummary key={closedRace.raceId} race={closedRace} closed />}
-      </View>
+      {(error || offline) && (
+        <View className="p-5">
+          <StaleDataBanner
+            what="calendar"
+            offline={offline}
+            retrying={isFetching}
+            onRetry={retry}
+          />
+        </View>
+      )}
+      {race ? (
+        <PredictionSummary key={race.raceId} race={race} now={now} />
+      ) : (
+        <View className="gap-4 px-5 py-12">
+          <Text
+            accessibilityRole="header"
+            className="text-center text-xl font-bold text-foreground"
+          >
+            No upcoming races
+          </Text>
+          <Text className="text-center text-base leading-6 text-muted">
+            There are no open prediction windows in the current calendar. Pull down to check for
+            updates.
+          </Text>
+        </View>
+      )}
     </ScrollView>
   );
 }
