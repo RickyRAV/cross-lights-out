@@ -1,15 +1,17 @@
 import { Link } from 'expo-router';
 import { Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
 import { ActionButton } from '@/components/race-ui';
+import { PredictionSummary } from '@/components/prediction-summary';
 import { useClock } from '@/hooks/use-clock';
 import { useRaces } from '@/hooks/use-races';
-import { countdownParts, nextRace } from '@/lib/race-calendar';
+import { countdownParts, latestClosedRace, nextRace } from '@/lib/race-calendar';
 import colors from '@/theme/colors';
 
 export default function PredictScreen() {
   const { data, error, isFetching, fetchStatus, refetch } = useRaces();
   const now = useClock();
   const race = data ? nextRace(data, now) : null;
+  const closedRace = data ? latestClosedRace(data, now) : null;
   const offline = fetchStatus === 'paused';
   const retry = () => {
     void refetch();
@@ -108,6 +110,7 @@ export default function PredictScreen() {
                 Predictions close: {new Date(race.lockoutAt).toLocaleString()}
               </Text>
             </View>
+            <PredictionSummary key={race.raceId} race={race} />
             <Link href="/race-detail" asChild>
               <Pressable
                 accessibilityRole="link"
@@ -131,6 +134,7 @@ export default function PredictScreen() {
             </Text>
           </View>
         )}
+        {closedRace && <PredictionSummary key={closedRace.raceId} race={closedRace} closed />}
       </View>
     </ScrollView>
   );
