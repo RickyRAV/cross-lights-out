@@ -9,6 +9,7 @@ export default function PredictLayout() {
     <Stack>
       <Stack.Screen name="index" options={{ title: 'Predict' }} />
       <Stack.Screen name="race-detail" options={{ title: 'Race Detail' }} />
+      <Stack.Screen name="prediction" options={{ title: 'Your prediction' }} />
     </Stack>
   );
 }

@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { useAuthStore } from '@/store/auth';
 
 type PredictionDraftState = {
   drafts: Record<string, string[]>;
@@ -17,3 +18,9 @@ export const usePredictionDraftStore = create<PredictionDraftState>()((set) => (
       return { drafts };
     }),
 }));
+
+useAuthStore.subscribe((state, previous) => {
+  if (previous.status === 'signedIn' && state.status === 'signedOut') {
+    usePredictionDraftStore.setState({ drafts: {} });
+  }
+});
