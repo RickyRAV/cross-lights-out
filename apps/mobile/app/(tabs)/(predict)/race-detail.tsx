@@ -1,14 +1,17 @@
 import type { RaceResponse } from '@lightsout/shared';
+import { useQueryClient } from '@tanstack/react-query';
 import { Link, useFocusEffect, useIsFocused, useLocalSearchParams } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
 import { ActionButton, AvatarChip, StatusPill } from '@/components/race-ui';
+import { RaceResults } from '@/components/race-results';
 import { FullScreenError, StaleDataBanner } from '@/components/screen-status';
 import { useMe } from '@/hooks/use-auth';
 import { useClock } from '@/hooks/use-clock';
 import { useMyGroup } from '@/hooks/use-groups';
+import { historyQuery } from '@/hooks/use-history';
 import { useGroupPredictions } from '@/hooks/use-predictions';
-import { useRaces } from '@/hooks/use-races';
+import { raceResultQuery, useRaces } from '@/hooks/use-races';
 import { latestClosedRace, nextRace } from '@/lib/race-calendar';
 import { chipColor, initials } from '@/lib/leaderboard';
 import colors from '@/theme/colors';
@@ -64,6 +67,7 @@ export default function RaceDetailScreen() {
 }
 
 function RaceMembers({ race }: { race: RaceResponse }) {
+  const queryClient = useQueryClient();
   const focused = useIsFocused();
   const group = useMyGroup();
   const me = useMe();
@@ -84,7 +88,16 @@ function RaceMembers({ race }: { race: RaceResponse }) {
     if (refreshing) return;
     setRefreshing(true);
     try {
-      await Promise.all([group.refetch(), groupId ? refetch() : Promise.resolve()]);
+      await Promise.all([
+        group.refetch(),
+        groupId ? refetch() : Promise.resolve(),
+        ...(closed
+          ? [
+              queryClient.invalidateQueries({ queryKey: raceResultQuery(race.raceId).queryKey }),
+              queryClient.invalidateQueries({ queryKey: historyQuery.queryKey }),
+            ]
+          : []),
+      ]);
     } finally {
       setRefreshing(false);
     }
@@ -169,11 +182,6 @@ function RaceMembers({ race }: { race: RaceResponse }) {
         <Text className="text-sm font-semibold text-muted">
           {group.data.name} · {closed ? 'Predictions closed' : 'Before lockout'}
         </Text>
-        {!closed && (
-          <Text className="text-sm leading-5 text-muted">
-            Only submission status is shown. Everyone's picks stay hidden before lockout.
-          </Text>
-        )}
         {members.data === undefined ? (
           members.error || members.fetchStatus === 'paused' ? (
             <FullScreenError
@@ -237,11 +245,9 @@ function RaceMembers({ race }: { race: RaceResponse }) {
                 </View>
               ))
             )}
-            <Text className="text-xs text-muted">
-              Statuses refresh automatically while this screen is open. Pull down to refresh now.
-            </Text>
           </>
         )}
+        {closed && <RaceResults raceId={race.raceId} />}
         {!closed && (
           <Link href={{ pathname: '/prediction', params: { raceId: race.raceId } }} asChild>
             <Pressable

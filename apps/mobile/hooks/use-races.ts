@@ -22,6 +22,10 @@ export function useRaces() {
   return useQuery(racesQuery);
 }
 
-export function useRaceResult(raceId: string) {
-  return useQuery(raceResultQuery(raceId));
+export function useRaceResult(raceId: string, { live = false }: { live?: boolean } = {}) {
+  return useQuery({
+    ...raceResultQuery(raceId),
+    refetchInterval: (query) => (live && query.state.data == null ? 30_000 : false),
+    refetchIntervalInBackground: false,
+  });
 }
