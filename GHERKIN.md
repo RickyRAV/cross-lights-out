@@ -670,3 +670,20 @@ Feature: Settings screen
     Then they are returned to the Login screen
     And no data from their session remains visible
 ```
+
+## LO-29 Mobile: Race Detail results and personal score
+
+**Assignee: Nikola**
+
+_(extends the Race Detail screen with post-race results and personal scoring)_
+
+```gherkin
+Feature: Race Detail results and personal score
+
+  Scenario: Post-race results and score are shown
+    Given the race has been graded
+    When the user opens Race Detail after lockout
+    Then the actual top five are shown even if they did not predict
+    And any submitted prediction shows exact-position matches and backend points
+
+```
