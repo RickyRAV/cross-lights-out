@@ -1,9 +1,16 @@
 import * as Notifications from 'expo-notifications';
 import * as SecureStore from 'expo-secure-store';
-import { queryOptions, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import type { SubmitPredictionRequest } from '@lightsout/shared';
+import {
+  queryOptions,
+  useMutation,
+  useMutationState,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query';
 import { useEffect } from 'react';
 import { useClock } from '@/hooks/use-clock';
-import { myPredictionQuery } from '@/hooks/use-predictions';
+import { myPredictionQuery, submitPredictionKey } from '@/hooks/use-predictions';
 import { useRaces } from '@/hooks/use-races';
 import { nextRace } from '@/lib/race-calendar';
 import {
@@ -77,16 +84,26 @@ export function useLockoutReminder() {
     enabled: race !== null,
   });
 
+  const waitingRaceIds = useMutationState({
+    filters: {
+      mutationKey: submitPredictionKey,
+      status: 'pending',
+      predicate: (mutation) => mutation.state.isPaused,
+    },
+    select: (mutation) => (mutation.state.variables as SubmitPredictionRequest | undefined)?.raceId,
+  });
+
   const granted = permission.data === 'granted';
   const predictionKnown = race === null || prediction.data !== undefined;
   const predicted = prediction.data != null;
+  const unsent = race !== null && waitingRaceIds.includes(race.raceId);
 
   useEffect(() => {
     if (permission.data === undefined || races.data === undefined || !predictionKnown) return;
     const sync =
-      granted && race && !predicted
-        ? scheduleLockoutReminder(race, Date.now())
+      granted && race && (unsent || !predicted)
+        ? scheduleLockoutReminder(race, Date.now(), unsent)
         : cancelLockoutReminders();
     void sync.catch(() => undefined);
-  }, [permission.data, races.data, granted, predictionKnown, predicted, race]);
+  }, [permission.data, races.data, granted, predictionKnown, predicted, unsent, race]);
 }

@@ -56,9 +56,12 @@ export function useGroupPredictions(
   });
 }
 
+export const submitPredictionKey = ['predictions', 'submit'] as const;
+
 export function useSubmitPrediction() {
   const queryClient = useQueryClient();
   return useMutation({
+    mutationKey: submitPredictionKey,
     mutationFn: (body: SubmitPredictionRequest) =>
       apiRequest('/predictions', predictionResponseSchema, { method: 'POST', body }),
     onSuccess: (prediction) => {
