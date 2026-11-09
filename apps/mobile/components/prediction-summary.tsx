@@ -2,7 +2,7 @@ import type { RaceResponse } from '@lightsout/shared';
 import { Link, router } from 'expo-router';
 import { Pressable, Text, View } from 'react-native';
 import { ActionButton, DriverRows, StatusPill } from '@/components/race-ui';
-import { useMyPrediction } from '@/hooks/use-predictions';
+import { useMyPrediction, useQueuedPrediction } from '@/hooks/use-predictions';
 import { useDrivers } from '@/hooks/use-drivers';
 import { countdownParts } from '@/lib/race-calendar';
 import { usePredictionDraftStore } from '@/store/prediction-draft';
@@ -21,22 +21,36 @@ export function PredictionSummary({
   const drivers = useDrivers();
   const draft = usePredictionDraftStore((state) => state.drafts[race.raceId]);
   const open = () => router.push({ pathname: '/prediction', params: { raceId: race.raceId } });
+  const queued = useQueuedPrediction(race.raceId);
   const saved = prediction.data;
-  const picks = saved?.predictedOrder ?? (closed ? [] : (draft ?? []));
+  const waiting = queued?.state === 'waiting';
+  const missed = queued?.state === 'missed';
+  const picks = waiting
+    ? queued.predictedOrder
+    : (saved?.predictedOrder ?? (closed ? [] : (draft ?? [])));
 
-  if (closed && saved === null) return null;
+  if (closed && saved === null && !missed) return null;
 
   return (
     <View>
-      <RaceHero race={race} now={now} submitted={!!saved} closed={closed} />
+      <RaceHero race={race} now={now} submitted={!!saved || waiting} closed={closed} />
       <View className="px-5 pt-5">
         <View className="min-h-6 flex-row flex-wrap items-center justify-between gap-2">
           <Text className="text-xs font-semibold text-muted">
             {closed ? 'Your locked picks' : 'Your top 5'}
           </Text>
-          {saved && !closed && <StatusPill label="Submitted" />}
+          {waiting ? (
+            <StatusPill label="Waiting to send" variant="score" />
+          ) : (
+            saved && !closed && <StatusPill label="Submitted" />
+          )}
         </View>
-        {saved === undefined ? (
+        {missed && (
+          <Text accessibilityRole="alert" className="pt-3 text-[13px] leading-5 text-accent">
+            Your prediction didn't count because you were offline until after lockout.
+          </Text>
+        )}
+        {saved === undefined && !waiting ? (
           <View className="gap-3 py-4">
             <Text className="text-[13px] text-muted">
               {prediction.error
@@ -72,7 +86,7 @@ export function PredictionSummary({
               code,
               team: drivers.data?.find((driver) => driver.code === code)?.team,
             }))}
-            onPress={!saved && !closed ? open : undefined}
+            onPress={!saved && !waiting && !closed ? open : undefined}
           />
         ) : closed ? (
           <Text className="py-5 text-[13px] leading-5 text-muted">
@@ -96,7 +110,7 @@ export function PredictionSummary({
             ))}
           </View>
         )}
-        {!saved && !closed && picks.length > 0 && picks.length < 5 && (
+        {!saved && !waiting && !closed && picks.length > 0 && picks.length < 5 && (
           <Pressable
             accessibilityRole="button"
             onPress={open}
@@ -123,7 +137,7 @@ export function PredictionSummary({
           </View>
         )}
       </View>
-      {saved !== undefined && (
+      {(saved !== undefined || waiting) && (
         <View className="px-5 pb-6">
           {closed ? (
             <Link href={{ pathname: '/race-detail', params: { raceId: race.raceId } }} asChild>
@@ -136,9 +150,9 @@ export function PredictionSummary({
             </Link>
           ) : (
             <ActionButton
-              secondary={!!saved}
+              secondary={!!saved || waiting}
               label={
-                saved
+                saved || waiting
                   ? 'Change prediction'
                   : picks.length === 5
                     ? 'Review prediction'

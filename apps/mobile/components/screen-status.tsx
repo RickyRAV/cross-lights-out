@@ -31,17 +31,29 @@ export function FullScreenError({
 
 export function StaleDataBanner({
   what,
+  updatedAt,
   offline,
   retrying,
   onRetry,
-}: StatusProps & { what: string }) {
+}: StatusProps & { what: string; updatedAt: number }) {
   return (
     <View className="gap-3 rounded-xl border border-border p-4">
-      <Text accessibilityRole="alert" className="text-sm text-muted">
-        {offline
-          ? `You're offline. Showing the last loaded ${what}.`
-          : `Couldn't refresh. Showing the last loaded ${what}.`}
-      </Text>
+      <View className="gap-1">
+        <Text accessibilityRole="alert" className="text-sm text-muted">
+          {offline
+            ? `You're offline. Showing the last loaded ${what}.`
+            : `Couldn't refresh. Showing the last loaded ${what}.`}
+        </Text>
+        <Text className="text-xs text-muted">
+          Last updated{' '}
+          {new Date(updatedAt).toLocaleString(undefined, {
+            month: 'short',
+            day: 'numeric',
+            hour: 'numeric',
+            minute: '2-digit',
+          })}
+        </Text>
+      </View>
       <ActionButton
         label={retrying ? 'Retrying…' : 'Retry'}
         secondary

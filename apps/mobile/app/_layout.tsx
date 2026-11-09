@@ -1,5 +1,5 @@
 import '@/global.css';
-import { QueryClientProvider } from '@tanstack/react-query';
+import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
 import { router, SplashScreen, Stack, ThemeProvider } from 'expo-router';
 import { useEffect, useRef } from 'react';
 import { ConnectionError } from '@/components/connection-error';
@@ -9,7 +9,7 @@ import {
   useReminderPermission,
   useReminderPromptHandled,
 } from '@/hooks/use-reminders';
-import { queryClient } from '@/lib/query-client';
+import { CACHE_MAX_AGE, persister, queryClient, resumeQueuedMutations } from '@/lib/query-client';
 import '@/lib/reminders';
 import { useAuthStore } from '@/store/auth';
 import { useOnboardingStore } from '@/store/onboarding';
@@ -23,11 +23,15 @@ export default function RootLayout() {
   }, []);
 
   return (
-    <QueryClientProvider client={queryClient}>
+    <PersistQueryClientProvider
+      client={queryClient}
+      persistOptions={{ persister, maxAge: CACHE_MAX_AGE }}
+      onSuccess={resumeQueuedMutations}
+    >
       <ThemeProvider value={navigationTheme}>
         <RootNavigator />
       </ThemeProvider>
-    </QueryClientProvider>
+    </PersistQueryClientProvider>
   );
 }
 

@@ -1,16 +1,9 @@
 import * as Notifications from 'expo-notifications';
 import * as SecureStore from 'expo-secure-store';
-import type { SubmitPredictionRequest } from '@lightsout/shared';
-import {
-  queryOptions,
-  useMutation,
-  useMutationState,
-  useQuery,
-  useQueryClient,
-} from '@tanstack/react-query';
+import { queryOptions, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import { useClock } from '@/hooks/use-clock';
-import { myPredictionQuery, submitPredictionKey } from '@/hooks/use-predictions';
+import { myPredictionQuery, useQueuedPrediction } from '@/hooks/use-predictions';
 import { useRaces } from '@/hooks/use-races';
 import { nextRace } from '@/lib/race-calendar';
 import {
@@ -84,19 +77,12 @@ export function useLockoutReminder() {
     enabled: race !== null,
   });
 
-  const waitingRaceIds = useMutationState({
-    filters: {
-      mutationKey: submitPredictionKey,
-      status: 'pending',
-      predicate: (mutation) => mutation.state.isPaused,
-    },
-    select: (mutation) => (mutation.state.variables as SubmitPredictionRequest | undefined)?.raceId,
-  });
+  const queued = useQueuedPrediction(race?.raceId);
 
   const granted = permission.data === 'granted';
   const predictionKnown = race === null || prediction.data !== undefined;
   const predicted = prediction.data != null;
-  const unsent = race !== null && waitingRaceIds.includes(race.raceId);
+  const unsent = queued?.state === 'waiting';
 
   useEffect(() => {
     if (permission.data === undefined || races.data === undefined || !predictionKnown) return;

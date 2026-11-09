@@ -5,14 +5,18 @@ import { FullScreenError, StaleDataBanner } from '@/components/screen-status';
 import { useMe } from '@/hooks/use-auth';
 import { useMyGroup } from '@/hooks/use-groups';
 import { useLeaderboard } from '@/hooks/use-leaderboard';
+import { useOnline } from '@/hooks/use-online';
 import { chipColor, initials, rankEntries, type RankedEntry } from '@/lib/leaderboard';
 import colors from '@/theme/colors';
 
 export default function LeaderboardScreen() {
   const group = useMyGroup();
   const me = useMe();
-  const { data, error, isFetching, fetchStatus, refetch } = useLeaderboard(group.data?.id);
-  const offline = fetchStatus === 'paused';
+  const { data, dataUpdatedAt, error, isFetching, fetchStatus, refetch } = useLeaderboard(
+    group.data?.id,
+  );
+  const online = useOnline();
+  const offline = fetchStatus === 'paused' || !online;
   const [pulling, setPulling] = useState(false);
   const retry = () => {
     void refetch();
@@ -73,6 +77,7 @@ export default function LeaderboardScreen() {
           {(error || offline) && (
             <StaleDataBanner
               what="standings"
+              updatedAt={dataUpdatedAt}
               offline={offline}
               retrying={isFetching}
               onRetry={retry}

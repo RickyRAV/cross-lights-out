@@ -6,6 +6,7 @@ import { ActionButton } from '@/components/race-ui';
 import { PredictionSummary } from '@/components/prediction-summary';
 import { StaleDataBanner } from '@/components/screen-status';
 import { useClock } from '@/hooks/use-clock';
+import { useOnline } from '@/hooks/use-online';
 import { useRaces } from '@/hooks/use-races';
 import { myPredictionQuery } from '@/hooks/use-predictions';
 import { latestClosedRace, nextRace } from '@/lib/race-calendar';
@@ -20,12 +21,13 @@ export default function PredictScreen() {
 }
 
 function PredictContent() {
-  const { data, error, isFetching, fetchStatus, refetch } = useRaces();
+  const { data, dataUpdatedAt, error, isFetching, fetchStatus, refetch } = useRaces();
   const queryClient = useQueryClient();
   const now = useClock();
   const race = data ? nextRace(data, now) : null;
   const closedRace = data ? latestClosedRace(data, now) : null;
-  const offline = fetchStatus === 'paused';
+  const online = useOnline();
+  const offline = fetchStatus === 'paused' || !online;
   const [pulling, setPulling] = useState(false);
   const retry = () => {
     void refetch();
@@ -100,6 +102,7 @@ function PredictContent() {
         <View className="p-5">
           <StaleDataBanner
             what="calendar"
+            updatedAt={dataUpdatedAt}
             offline={offline}
             retrying={isFetching}
             onRetry={retry}
