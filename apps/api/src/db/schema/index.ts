@@ -6,3 +6,4 @@ export * from './race-calendar';
 export * from './predictions';
 export * from './race-results';
 export * from './scores';
+export * from './drivers';

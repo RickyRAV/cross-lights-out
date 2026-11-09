@@ -1,4 +1,5 @@
 import { buildApp, type AppDependencies } from '../src/app';
+import type { DriversService } from '../src/services/drivers.service';
 import type { GroupsService } from '../src/services/groups.service';
 import type { HealthService } from '../src/services/health.service';
 import type { LeaderboardService } from '../src/services/leaderboard.service';
@@ -81,6 +82,14 @@ export function stubRaceCalendarService(
   };
 }
 
+export function stubDriversService(overrides: Partial<DriversService> = {}): DriversService {
+  return {
+    listDrivers: async () => [],
+    findUnknownCodes: async () => [],
+    ...overrides,
+  };
+}
+
 export function stubLeaderboardService(
   overrides: Partial<LeaderboardService> = {},
 ): LeaderboardService {
@@ -111,6 +120,7 @@ export function buildTestApp(overrides: Partial<AppDependencies> = {}) {
     groupsService: stubGroupsService(),
     predictionsService: stubPredictionsService(),
     raceCalendarService: stubRaceCalendarService(),
+    driversService: stubDriversService(),
     leaderboardService: stubLeaderboardService(),
     usersService: stubUsersService(),
     ...overrides,

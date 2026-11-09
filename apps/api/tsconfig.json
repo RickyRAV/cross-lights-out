@@ -9,10 +9,9 @@
     "skipLibCheck": true,
     "sourceMap": true,
     "declaration": false,
-    "rootDir": "src",
-    "outDir": "dist",
-    "types": ["node"]
+    "types": ["node"],
+    "noEmit": true
   },
-  "include": ["src"],
-  "exclude": ["dist", "test"]
+  "include": ["src", "test", "vitest.config.mts"],
+  "exclude": ["dist"]
 }

@@ -14,6 +14,9 @@ function fakeGroupsRepository(
     addMember: async () => true,
     isMember: async (_groupId, userId) => members.some((member) => member.userId === userId),
     listMembers: async () => members,
+    findByUserId: async () => {
+      throw new Error('not used in this test');
+    },
   };
 }
 
@@ -24,6 +27,9 @@ function fakeScoresRepository(totals: UserPoints[]): ScoresRepository {
     },
     async sumPointsByUserIds(userIds) {
       return totals.filter((total) => userIds.includes(total.userId));
+    },
+    findByPredictionIds: async () => {
+      throw new Error('not used in this test');
     },
   };
 }
