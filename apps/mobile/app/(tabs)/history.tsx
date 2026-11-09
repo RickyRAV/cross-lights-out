@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { FlatList, Pressable, RefreshControl, Text, View } from 'react-native';
 import { FullScreenError, StaleDataBanner } from '@/components/screen-status';
 import { useHistory } from '@/hooks/use-history';
+import { useOnline } from '@/hooks/use-online';
 import { useRaces } from '@/hooks/use-races';
 import colors from '@/theme/colors';
 
@@ -12,7 +13,8 @@ export default function HistoryScreen() {
   const history = useHistory({ live: focused });
   const calendar = useRaces();
   const [pulling, setPulling] = useState(false);
-  const offline = history.fetchStatus === 'paused';
+  const online = useOnline();
+  const offline = history.fetchStatus === 'paused' || !online;
   const retry = () => {
     void history.refetch();
     void calendar.refetch();
@@ -78,6 +80,7 @@ export default function HistoryScreen() {
           {(history.error || offline) && (
             <StaleDataBanner
               what="history"
+              updatedAt={history.dataUpdatedAt}
               offline={offline}
               retrying={history.isFetching}
               onRetry={retry}
@@ -86,6 +89,7 @@ export default function HistoryScreen() {
           {calendar.error && (
             <StaleDataBanner
               what="race information"
+              updatedAt={calendar.dataUpdatedAt}
               offline={calendar.fetchStatus === 'paused'}
               retrying={calendar.isFetching}
               onRetry={retry}

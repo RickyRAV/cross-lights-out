@@ -195,6 +195,7 @@ function RaceMembers({ race }: { race: RaceResponse }) {
             {(members.error || members.fetchStatus === 'paused' || group.error) && (
               <StaleDataBanner
                 what="submission statuses"
+                updatedAt={members.dataUpdatedAt}
                 offline={members.fetchStatus === 'paused' || group.fetchStatus === 'paused'}
                 retrying={refreshing || members.isFetching || group.isFetching}
                 onRetry={() => {

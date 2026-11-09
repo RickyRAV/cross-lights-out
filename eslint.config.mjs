@@ -57,7 +57,7 @@ export default tseslint.config(
     },
   },
   {
-    files: ['**/*.config.js', 'apps/mobile/theme/*.js'],
+    files: ['**/*.config.js', 'apps/mobile/theme/*.js', '.pnpmfile.cjs'],
     languageOptions: { sourceType: 'commonjs', globals: globals.node },
     rules: { '@typescript-eslint/no-require-imports': 'off' },
   },

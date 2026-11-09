@@ -1,4 +1,5 @@
 import { submitPredictionRequestSchema, type RaceResponse } from '@lightsout/shared';
+import { onlineManager } from '@tanstack/react-query';
 import { router } from 'expo-router';
 import { useRef, useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
@@ -6,7 +7,7 @@ import { PredictionConfirmation } from '@/components/prediction-confirmation';
 import { ActionButton, DriverChip, DriverRows, StatusPill } from '@/components/race-ui';
 import { useClock } from '@/hooks/use-clock';
 import { useDrivers } from '@/hooks/use-drivers';
-import { useMyPrediction, useSubmitPrediction } from '@/hooks/use-predictions';
+import { useMyPrediction, useQueuedPrediction, useSubmitPrediction } from '@/hooks/use-predictions';
 import { ApiError } from '@/lib/api';
 import { apiErrorMessage } from '@/lib/form-errors';
 import { usePredictionDraftStore } from '@/store/prediction-draft';
@@ -15,6 +16,7 @@ export function PredictionEditor({ race }: { race: RaceResponse }) {
   const prediction = useMyPrediction(race.raceId);
   const drivers = useDrivers();
   const submission = useSubmitPrediction();
+  const queued = useQueuedPrediction(race.raceId);
   const now = useClock();
   const [serverLocked, setServerLocked] = useState(false);
   const [confirmation, setConfirmation] = useState<string[] | null>(null);
@@ -108,6 +110,7 @@ export function PredictionEditor({ race }: { race: RaceResponse }) {
         },
       },
     );
+    if (!onlineManager.isOnline()) router.back();
   };
 
   if (prediction.data === undefined || (!locked && drivers.data === undefined)) {
@@ -326,9 +329,9 @@ export function PredictionEditor({ race }: { race: RaceResponse }) {
               />
             </View>
           )}
-          {submission.isPaused && (
+          {queued?.state === 'waiting' && (
             <Text accessibilityLiveRegion="polite" className="text-sm text-muted">
-              Waiting for a connection. Your prediction has not been submitted yet.
+              Waiting to send. Your prediction will be sent automatically when you're back online.
             </Text>
           )}
           <ActionButton
