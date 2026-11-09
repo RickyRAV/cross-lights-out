@@ -685,5 +685,6 @@ Feature: Race Detail results and personal score
     When the user opens Race Detail after lockout
     Then the actual top five are shown even if they did not predict
     And any submitted prediction shows exact-position matches and backend points
+    And each group member's submitted top five and earned points are shown
 
 ```

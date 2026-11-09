@@ -25,6 +25,7 @@ export const memberPredictionStatusSchema = z.object({
   displayName: z.string(),
   submitted: z.boolean(),
   predictedOrder: z.array(z.string()).nullable(),
+  points: z.number().int().nullable().default(null),
 });
 export type MemberPredictionStatus = z.infer<typeof memberPredictionStatusSchema>;
 

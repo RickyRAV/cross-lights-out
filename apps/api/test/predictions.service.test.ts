@@ -5,7 +5,9 @@ import { createPredictionsService } from '../src/services/predictions.service';
 import type { DriversService } from '../src/services/drivers.service';
 import type { RaceCalendarService } from '../src/services/race-calendar.service';
 
-function fakePredictionsRepository(seed: Prediction[] = []): PredictionsRepository {
+function fakePredictionsRepository(
+  seed: (Prediction & { points?: number | null })[] = [],
+): PredictionsRepository {
   const store = [...seed];
   return {
     async upsert(input) {
@@ -28,7 +30,9 @@ function fakePredictionsRepository(seed: Prediction[] = []): PredictionsReposito
       return store.find((p) => p.userId === userId && p.raceId === raceId);
     },
     async findByRaceForUsers(raceId, userIds) {
-      return store.filter((p) => p.raceId === raceId && userIds.includes(p.userId));
+      return store
+        .filter((p) => p.raceId === raceId && userIds.includes(p.userId))
+        .map((p) => ({ ...p, points: p.points ?? null }));
     },
     async findByRaceId(raceId) {
       return store.filter((p) => p.raceId === raceId);
@@ -275,13 +279,25 @@ describe('predictionsService.getGroupRacePredictions', () => {
 
     expect(statuses).toEqual(
       expect.arrayContaining([
-        { userId: 'user-1', displayName: 'Racer One', submitted: true, predictedOrder: null },
-        { userId: 'user-2', displayName: 'Racer Two', submitted: false, predictedOrder: null },
+        {
+          userId: 'user-1',
+          displayName: 'Racer One',
+          submitted: true,
+          predictedOrder: null,
+          points: null,
+        },
+        {
+          userId: 'user-2',
+          displayName: 'Racer Two',
+          submitted: false,
+          predictedOrder: null,
+          points: null,
+        },
       ]),
     );
   });
 
-  it('reveals picks once the lockout has passed', async () => {
+  it('reveals picks and stored points once the lockout has passed', async () => {
     const predictionsRepository = fakePredictionsRepository([
       {
         id: crypto.randomUUID(),
@@ -290,6 +306,7 @@ describe('predictionsService.getGroupRacePredictions', () => {
         predictedOrder: ['A', 'B', 'C', 'D', 'E'],
         submittedAt: new Date(),
         lockedAt: new Date(Date.now() - 60_000),
+        points: 19,
       },
     ]);
     const service = createPredictionsService({
@@ -310,6 +327,7 @@ describe('predictionsService.getGroupRacePredictions', () => {
         displayName: 'Racer One',
         submitted: true,
         predictedOrder: ['A', 'B', 'C', 'D', 'E'],
+        points: 19,
       },
     ]);
   });

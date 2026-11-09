@@ -99,6 +99,7 @@ describe('GET /api/v1/groups/:groupId/races/:raceId/predictions', () => {
             displayName: 'Racer One',
             submitted: true,
             predictedOrder: null,
+            points: null,
           },
         ],
       }),
@@ -118,6 +119,7 @@ describe('GET /api/v1/groups/:groupId/races/:raceId/predictions', () => {
         displayName: 'Racer One',
         submitted: true,
         predictedOrder: null,
+        points: null,
       },
     ]);
   });
