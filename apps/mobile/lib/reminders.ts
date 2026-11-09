@@ -49,7 +49,7 @@ export function cancelLockoutReminders() {
   return inOrder(() => cancelReminders());
 }
 
-export function scheduleLockoutReminder(race: RaceResponse, now: number) {
+export function scheduleLockoutReminder(race: RaceResponse, now: number, unsent: boolean) {
   return inOrder(async () => {
     const fireAt = Date.parse(race.lockoutAt) - REMINDER_LEAD_MS;
     if (!(fireAt > now)) {
@@ -61,11 +61,17 @@ export function scheduleLockoutReminder(race: RaceResponse, now: number) {
     await cancelReminders(identifier);
     await Notifications.scheduleNotificationAsync({
       identifier,
-      content: {
-        title: 'Predictions close in 1 hour',
-        body: `Lock in your top 5 for the ${race.name} before it's too late.`,
-        data: { raceId: race.raceId },
-      },
+      content: unsent
+        ? {
+            title: 'Your prediction has not been sent yet',
+            body: `Your ${race.name} prediction is still waiting for a connection. Open Lights Out online before predictions close in 1 hour.`,
+            data: { raceId: race.raceId },
+          }
+        : {
+            title: 'Predictions close in 1 hour',
+            body: `Lock in your top 5 for the ${race.name} before it's too late.`,
+            data: { raceId: race.raceId },
+          },
       trigger: {
         type: Notifications.SchedulableTriggerInputTypes.DATE,
         date: new Date(fireAt),
