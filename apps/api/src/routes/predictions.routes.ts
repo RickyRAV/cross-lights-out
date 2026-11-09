@@ -31,7 +31,7 @@ export function predictionsRoutes(predictionsService: PredictionsService): Fasti
           body: submitPredictionRequestSchema,
           response: {
             200: predictionResponseSchema,
-            400: validationErrorResponseSchema,
+            400: z.union([validationErrorResponseSchema, errorResponseSchema]),
             401: errorResponseSchema,
             404: errorResponseSchema,
             409: errorResponseSchema,

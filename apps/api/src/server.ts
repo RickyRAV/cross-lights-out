@@ -2,6 +2,7 @@ import { env } from './config/env';
 import { createDb } from './db/client';
 import { runMigrations } from './db/migrate';
 import { createJolpicaClient } from './lib/jolpica-client';
+import { createDriversRepository } from './repositories/drivers.repository';
 import { createGroupsRepository } from './repositories/groups.repository';
 import { createHealthRepository } from './repositories/health.repository';
 import { createPredictionsRepository } from './repositories/predictions.repository';
@@ -9,6 +10,7 @@ import { createRaceCalendarRepository } from './repositories/race-calendar.repos
 import { createRaceResultsRepository } from './repositories/race-results.repository';
 import { createScoresRepository } from './repositories/scores.repository';
 import { createUsersRepository } from './repositories/users.repository';
+import { createDriversService } from './services/drivers.service';
 import { createGradingService } from './services/grading.service';
 import { createGroupsService } from './services/groups.service';
 import { createHealthService } from './services/health.service';
@@ -39,10 +41,16 @@ async function main(): Promise<void> {
     jolpicaClient,
     cacheTtlHours: env.RACE_CALENDAR_CACHE_TTL_HOURS,
   });
+  const driversService = createDriversService({
+    driversRepository: createDriversRepository(db),
+    jolpicaClient,
+    cacheTtlHours: env.DRIVER_LIST_CACHE_TTL_HOURS,
+  });
   const predictionsService = createPredictionsService({
     predictionsRepository,
     groupsRepository,
     raceCalendarService,
+    driversService,
   });
   const scoresRepository = createScoresRepository(db);
   const gradingService = createGradingService({
@@ -65,6 +73,7 @@ async function main(): Promise<void> {
     groupsService,
     predictionsService,
     raceCalendarService,
+    driversService,
     leaderboardService,
     usersService,
   });

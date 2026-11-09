@@ -6,6 +6,7 @@ import type {
 import { AppError } from '../lib/errors';
 import type { GroupsRepository } from '../repositories/groups.repository';
 import type { Prediction, PredictionsRepository } from '../repositories/predictions.repository';
+import type { DriversService } from './drivers.service';
 import type { RaceCalendarService } from './race-calendar.service';
 
 export interface PredictionsService {
@@ -22,6 +23,7 @@ export function createPredictionsService(deps: {
   predictionsRepository: PredictionsRepository;
   groupsRepository: GroupsRepository;
   raceCalendarService: RaceCalendarService;
+  driversService: Pick<DriversService, 'findUnknownCodes'>;
 }): PredictionsService {
   return {
     async submitPrediction(userId, input) {
@@ -30,6 +32,16 @@ export function createPredictionsService(deps: {
         throw new AppError(404, 'RaceNotFound', 'No race matches this raceId');
       }
 
+      const unknownCodes = await deps.driversService.findUnknownCodes(input.predictedOrder);
+      if (unknownCodes.length > 0) {
+        throw new AppError(
+          400,
+          'UnknownDriver',
+          `Not a driver in the current season: ${unknownCodes.join(', ')}`,
+        );
+      }
+
+      // Checked last, right before saving: the lookups above can call Jolpica-F1 and outlast the deadline.
       const lockoutAt = new Date(race.lockoutAt);
       if (Date.now() >= lockoutAt.getTime()) {
         throw new AppError(409, 'PredictionsLocked', 'Predictions are locked for this race');

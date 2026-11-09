@@ -16,6 +16,7 @@ import { env } from './config/env';
 import { errorHandler } from './plugins/error-handler';
 import { apiRoutes } from './routes';
 import { createAuthService } from './services/auth.service';
+import type { DriversService } from './services/drivers.service';
 import type { GroupsService } from './services/groups.service';
 import type { HealthService } from './services/health.service';
 import type { LeaderboardService } from './services/leaderboard.service';
@@ -31,6 +32,7 @@ export interface AppDependencies {
   groupsService: GroupsService;
   predictionsService: PredictionsService;
   raceCalendarService: RaceCalendarService;
+  driversService: DriversService;
   leaderboardService: LeaderboardService;
   usersService: UsersService;
 }
@@ -74,6 +76,10 @@ export async function buildApp(deps: AppDependencies): Promise<FastifyInstance> 
         { name: 'Auth', description: 'Account creation and JWT issuance' },
         { name: 'Groups', description: 'Friend groups and invite codes' },
         { name: 'Races', description: 'Cached race calendar, proxied from Jolpica-F1' },
+        {
+          name: 'Drivers',
+          description: 'Cached current season driver list, proxied from Jolpica-F1',
+        },
         { name: 'Predictions', description: 'Sealed prediction submission and group status' },
         { name: 'Leaderboard', description: "A group's season standings" },
         { name: 'Users', description: "The current user's identity and prediction history" },
