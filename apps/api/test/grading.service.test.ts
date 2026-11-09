@@ -34,6 +34,9 @@ function fakeRaceResultsRepository(seed: RaceResultRow[] = []): RaceResultsRepos
       store.push(row);
       return row;
     },
+    findByRaceIds: async () => {
+      throw new Error('not used in this test');
+    },
   };
 }
 
@@ -51,6 +54,9 @@ function fakePredictionsRepository(seed: Prediction[]): PredictionsRepository {
     async findByRaceId(raceId) {
       return seed.filter((prediction) => prediction.raceId === raceId);
     },
+    findByUserId: async () => {
+      throw new Error('not used in this test');
+    },
   };
 }
 
@@ -58,6 +64,12 @@ function fakeScoresRepository(): ScoresRepository & { inserted: NewScore[] } {
   const inserted: NewScore[] = [];
   return {
     inserted,
+    sumPointsByUserIds: async () => {
+      throw new Error('not used in this test');
+    },
+    findByPredictionIds: async () => {
+      throw new Error('not used in this test');
+    },
     async insertMany(input) {
       inserted.push(...input);
     },
