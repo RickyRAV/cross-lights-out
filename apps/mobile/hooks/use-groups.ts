@@ -7,6 +7,7 @@ import {
 } from '@lightsout/shared';
 import { queryOptions, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/api';
+import { useOnboardingStore } from '@/store/onboarding';
 
 export const myGroupsQuery = queryOptions({
   queryKey: ['groups', 'mine'],
@@ -26,7 +27,10 @@ export function useCreateGroup() {
   return useMutation({
     mutationFn: (body: CreateGroupRequest) =>
       apiRequest('/groups', groupResponseSchema, { method: 'POST', body }),
-    onSuccess: (group) => queryClient.setQueryData(myGroupsQuery.queryKey, [group]),
+    onSuccess: (group) => {
+      useOnboardingStore.getState().showCreatedGroup(group);
+      queryClient.setQueryData(myGroupsQuery.queryKey, [group]);
+    },
   });
 }
 
