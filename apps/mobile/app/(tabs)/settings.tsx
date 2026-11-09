@@ -5,7 +5,7 @@ import { ActionButton } from '@/components/race-ui';
 import { StaleDataBanner } from '@/components/screen-status';
 import { useMe } from '@/hooks/use-auth';
 import { useMyGroup } from '@/hooks/use-groups';
-import { useReminderPermission } from '@/hooks/use-reminders';
+import { useReminderPermission, useRequestReminderPermission } from '@/hooks/use-reminders';
 import { useAuthStore } from '@/store/auth';
 
 export default function SettingsScreen() {
@@ -13,6 +13,7 @@ export default function SettingsScreen() {
   const group = useMyGroup();
   const permission = useReminderPermission();
   const { refetch: refreshPermission } = permission;
+  const requestPermission = useRequestReminderPermission();
   const signOut = useAuthStore((state) => state.signOut);
   const [busy, setBusy] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
@@ -43,6 +44,12 @@ export default function SettingsScreen() {
         "Couldn't open system settings. Open your device settings to change notification permissions.",
       );
     }
+  };
+  const turnOnReminders = () => {
+    setActionError(null);
+    requestPermission.mutate(undefined, {
+      onError: () => setActionError("Couldn't ask for notification permission. Please try again."),
+    });
   };
   const logout = async () => {
     if (busy) return;
@@ -166,13 +173,23 @@ export default function SettingsScreen() {
                 }}
               />
             )}
-            <ActionButton
-              secondary
-              label="Open notification settings"
-              onPress={() => {
-                void openNotifications();
-              }}
-            />
+            {permission.data === 'askable' ? (
+              <ActionButton
+                secondary
+                label={requestPermission.isPending ? 'Asking…' : 'Turn on reminders'}
+                accessibilityState={{ busy: requestPermission.isPending }}
+                disabled={requestPermission.isPending}
+                onPress={turnOnReminders}
+              />
+            ) : (
+              <ActionButton
+                secondary
+                label="Open notification settings"
+                onPress={() => {
+                  void openNotifications();
+                }}
+              />
+            )}
           </View>
         </View>
         {actionError && (
