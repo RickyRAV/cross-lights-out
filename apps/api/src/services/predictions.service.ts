@@ -86,6 +86,7 @@ export function createPredictionsService(deps: {
           displayName: member.displayName,
           submitted: prediction !== undefined,
           predictedOrder: !sealed && prediction ? prediction.predictedOrder : null,
+          points: !sealed && prediction ? prediction.points : null,
         };
       });
     },

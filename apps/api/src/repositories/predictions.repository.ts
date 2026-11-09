@@ -1,6 +1,6 @@
 import { and, desc, eq, inArray } from 'drizzle-orm';
 import type { Database } from '../db/client';
-import { predictions } from '../db/schema';
+import { predictions, scores } from '../db/schema';
 import { firstRow } from '../lib/db';
 
 export interface UpsertPrediction {
@@ -22,7 +22,10 @@ export interface Prediction {
 export interface PredictionsRepository {
   upsert(input: UpsertPrediction): Promise<Prediction>;
   findByUserAndRace(userId: string, raceId: string): Promise<Prediction | undefined>;
-  findByRaceForUsers(raceId: string, userIds: string[]): Promise<Prediction[]>;
+  findByRaceForUsers(
+    raceId: string,
+    userIds: string[],
+  ): Promise<(Prediction & { points: number | null })[]>;
   findByRaceId(raceId: string): Promise<Prediction[]>;
   findByUserId(userId: string): Promise<Prediction[]>;
 }
@@ -56,10 +59,12 @@ export function createPredictionsRepository(db: Database): PredictionsRepository
       if (userIds.length === 0) {
         return [];
       }
-      return db
-        .select()
+      const rows = await db
+        .select({ prediction: predictions, points: scores.points })
         .from(predictions)
+        .leftJoin(scores, eq(scores.predictionId, predictions.id))
         .where(and(eq(predictions.raceId, raceId), inArray(predictions.userId, userIds)));
+      return rows.map(({ prediction, points }) => ({ ...prediction, points }));
     },
     async findByRaceId(raceId) {
       return db.select().from(predictions).where(eq(predictions.raceId, raceId));

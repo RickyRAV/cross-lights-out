@@ -3,11 +3,12 @@ import { useQueryClient } from '@tanstack/react-query';
 import { Link, useFocusEffect, useIsFocused, useLocalSearchParams } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
-import { ActionButton, AvatarChip, StatusPill } from '@/components/race-ui';
+import { ActionButton, AvatarChip, StatusPill, DriverChip } from '@/components/race-ui';
 import { RaceResults } from '@/components/race-results';
 import { FullScreenError, StaleDataBanner } from '@/components/screen-status';
 import { useMe } from '@/hooks/use-auth';
 import { useClock } from '@/hooks/use-clock';
+import { useDrivers } from '@/hooks/use-drivers';
 import { useMyGroup } from '@/hooks/use-groups';
 import { historyQuery } from '@/hooks/use-history';
 import { useGroupPredictions } from '@/hooks/use-predictions';
@@ -71,6 +72,7 @@ function RaceMembers({ race }: { race: RaceResponse }) {
   const focused = useIsFocused();
   const group = useMyGroup();
   const me = useMe();
+  const drivers = useDrivers();
   const members = useGroupPredictions(group.data?.id, race.raceId, { live: focused });
   const { refetch } = members;
   const groupId = group.data?.id;
@@ -226,20 +228,50 @@ function RaceMembers({ race }: { race: RaceResponse }) {
               members.data.map((member, index) => (
                 <View
                   key={member.userId}
-                  className={`min-h-16 flex-row flex-wrap items-center gap-3 py-3 ${index < members.data.length - 1 ? 'border-b border-border' : ''}`}
+                  className={`gap-3 py-3 ${index < members.data.length - 1 ? 'border-b border-border' : ''}`}
                 >
-                  <AvatarChip
-                    code={initials(member.displayName)}
-                    color={member.userId === me.data?.id ? 'self' : chipColor(member.userId)}
-                  />
-                  <Text className="min-w-0 flex-1 text-[15px] font-semibold text-foreground">
-                    {member.displayName}
-                  </Text>
-                  {member.submitted ? (
-                    <StatusPill label="Submitted" />
-                  ) : (
-                    <View className="rounded-full bg-raised px-2.5 py-1">
-                      <Text className="text-[11px] font-semibold text-muted">Not submitted</Text>
+                  <View className="min-h-10 flex-row flex-wrap items-center gap-3">
+                    <AvatarChip
+                      code={initials(member.displayName)}
+                      color={member.userId === me.data?.id ? 'self' : chipColor(member.userId)}
+                    />
+                    <Text className="min-w-0 flex-1 text-[15px] font-semibold text-foreground">
+                      {member.displayName}
+                    </Text>
+                    {member.submitted ? (
+                      <StatusPill
+                        label={
+                          closed
+                            ? member.points == null
+                              ? 'Points pending'
+                              : `${member.points} pts`
+                            : 'Submitted'
+                        }
+                        variant={closed ? 'score' : 'submitted'}
+                      />
+                    ) : (
+                      <View className="rounded-full bg-raised px-2.5 py-1">
+                        <Text className="text-[11px] font-semibold text-muted">Not submitted</Text>
+                      </View>
+                    )}
+                  </View>
+                  {closed && member.predictedOrder && (
+                    <View className="gap-2">
+                      {member.predictedOrder.map((code, position) => (
+                        <View
+                          key={`${position}-${code}`}
+                          className="min-h-11 flex-row items-center gap-3"
+                        >
+                          <Text className="w-5 text-sm tabular-nums text-muted">
+                            {position + 1}.
+                          </Text>
+                          <DriverChip
+                            code={code}
+                            team={drivers.data?.find((driver) => driver.code === code)?.team}
+                          />
+                          <Text className="text-sm font-semibold text-foreground">{code}</Text>
+                        </View>
+                      ))}
                     </View>
                   )}
                 </View>
