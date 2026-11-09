@@ -13,7 +13,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ActionButton } from '@/components/race-ui';
 import { TextField } from '@/components/text-field';
 import { useLogin } from '@/hooks/use-auth';
-import { authErrorMessage, invalidFields } from '@/lib/auth-form';
+import { apiErrorMessage, invalidFields } from '@/lib/form-errors';
 
 export default function SignInScreen() {
   const insets = useSafeAreaInsets();
@@ -78,7 +78,7 @@ export default function SignInScreen() {
 
         {login.isError && (
           <Text accessibilityLiveRegion="polite" className="text-[13px] text-accent">
-            {authErrorMessage(login.error)}
+            {apiErrorMessage(login.error)}
           </Text>
         )}
 

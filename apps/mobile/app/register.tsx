@@ -13,7 +13,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ActionButton } from '@/components/race-ui';
 import { TextField } from '@/components/text-field';
 import { useRegister } from '@/hooks/use-auth';
-import { authErrorMessage, invalidFields } from '@/lib/auth-form';
+import { apiErrorMessage, invalidFields } from '@/lib/form-errors';
 
 export default function RegisterScreen() {
   const insets = useSafeAreaInsets();
@@ -96,7 +96,7 @@ export default function RegisterScreen() {
 
         {register.isError && (
           <Text accessibilityLiveRegion="polite" className="text-[13px] text-accent">
-            {authErrorMessage(register.error)}
+            {apiErrorMessage(register.error)}
           </Text>
         )}
 
