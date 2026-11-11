@@ -60,3 +60,13 @@ http:
 ```
 
 3. Check it with `curl https://lightsout-api.w11core.cc/present/api/v1/health`.
+
+## Showing the lockout reminder
+
+In present mode the reminder fires 2 minutes before lockout instead of 1 hour. Expo Go only gets inexact alarms by default, so Android can delay it past lockout. Allow exact alarms on the emulator once:
+
+```sh
+adb shell appops set host.exp.exponent SCHEDULE_EXACT_ALARM allow
+```
+
+Then sign in, allow notifications, don't predict the next Presentation Grand Prix, and the reminder shows up 2 minutes before it locks.

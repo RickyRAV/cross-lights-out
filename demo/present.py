@@ -26,6 +26,7 @@ FIRST_DEMO_ROUND = 100
 RESULT_DELAY_S = 120
 CYCLE_MINUTES = 15
 KEEP_FINISHED_DEMO_RACES = 4
+UPCOMING_DEMO_RACES = 6
 DEMO_NAME = "Presentation Grand Prix"
 DEMO_CIRCUIT = "FH Technikum Wien"
 HUMANS = [("ricky@demo.lightsout.app", "Ricky"), ("nikola@demo.lightsout.app", "Nikola")]
@@ -205,15 +206,23 @@ def seed():
 # Rolling Presentation Grand Prix
 
 def keep_demo_race(user_ids):
-    upcoming = sql(f"SELECT count(*) FROM race_calendar WHERE name = {q(DEMO_NAME)} AND lockout_at > now()")
-    if upcoming == "0":
+    # The app caches the calendar for an hour, so keep more than an hour of demo races ahead.
+    step = CYCLE_MINUTES * 60
+    while True:
+        upcoming = int(sql(f"SELECT count(*) FROM race_calendar WHERE name = {q(DEMO_NAME)} AND lockout_at > now()"))
+        if upcoming >= UPCOMING_DEMO_RACES:
+            break
         year = datetime.now(timezone.utc).year
         last = sql(f"SELECT max(split_part(race_id, '-', 2)::int) FROM race_calendar WHERE name = {q(DEMO_NAME)}")
+        latest = sql(f"SELECT extract(epoch FROM max(lockout_at))::bigint FROM race_calendar "
+                     f"WHERE name = {q(DEMO_NAME)} AND lockout_at > now()")
         race_id = f"{year}-{max(int(last or 0) + 1, FIRST_DEMO_ROUND)}"
-        step = CYCLE_MINUTES * 60
-        lockout = (int(time.time()) // step + 1) * step
-        if lockout - time.time() < 4 * 60:
-            lockout += step
+        if latest:
+            lockout = int(latest) + step
+        else:
+            lockout = (int(time.time()) // step + 1) * step
+            if lockout - time.time() < 4 * 60:
+                lockout += step
         statements = [
             "INSERT INTO race_calendar (race_id, name, circuit, lockout_at) VALUES "
             f"({q(race_id)}, {q(DEMO_NAME)}, {q(DEMO_CIRCUIT)}, to_timestamp({lockout}));"]
