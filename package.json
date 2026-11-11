@@ -6,6 +6,8 @@
   "scripts": {
     "start": "pnpm --filter @lightsout/mobile start",
     "android": "pnpm --filter @lightsout/mobile android",
+    "present": "pnpm --filter @lightsout/mobile start:present",
+    "present:local": "pnpm --filter @lightsout/mobile start:present:local",
     "ios": "pnpm --filter @lightsout/mobile ios",
     "api:dev": "pnpm --filter @lightsout/api dev",
     "shared:dev": "pnpm --filter @lightsout/shared dev",

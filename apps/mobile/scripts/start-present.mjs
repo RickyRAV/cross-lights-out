@@ -5,7 +5,7 @@ const url = process.argv.includes('--local')
   : 'https://lightsout-api.w11core.cc/present/api/v1';
 
 console.log(`Present mode, API: ${url}`);
-spawn('expo', ['start', '--clear'], {
+spawn('expo', ['start', '--android', '--clear'], {
   stdio: 'inherit',
   shell: true,
   env: { ...process.env, EXPO_PUBLIC_API_URL: url },

@@ -11,8 +11,8 @@ Accounts: `ricky@demo.lightsout.app` and `nikola@demo.lightsout.app`, password `
 ## Start the app in present mode
 
 ```sh
-pnpm --filter @lightsout/mobile start:present         # deployed present backend
-pnpm --filter @lightsout/mobile start:present:local   # local one on port 3004 (Android emulator)
+pnpm present         # deployed present backend, opens the Android emulator
+pnpm present:local   # local one on port 3004
 ```
 
 ## Run it locally
