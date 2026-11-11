@@ -17,3 +17,4 @@ build/
 !.env.example
 .claude/
 docs/deployment.md
+demo/.state/
