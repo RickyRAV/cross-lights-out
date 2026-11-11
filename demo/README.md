@@ -27,27 +27,36 @@ Seeding takes about two minutes, because the API allows only five logins per min
 ## Deploy
 
 1. In Coolify, add a new Docker Compose resource from `RickyRAV/cross-lights-out`, branch `demo/presentation-mode`, compose file `docker-compose.present.yml`. Leave Domains empty. Optionally set `PRESENT_JWT_SECRET` and `PRESENT_DB_PASSWORD`.
-2. Add a Traefik dynamic file next to `lightsout-backend.yml`. Copy the entry points, TLS settings and middlewares from the production router, so only the rule, the strip middleware and the port change:
+2. Add this router, middleware and service to `lightsout-backend.yml`, next to the production ones, and keep those unchanged. The priority has to be higher than the production router's 500, otherwise production also catches `/present`.
 
 ```yaml
 http:
   routers:
-    lightsout-present:
-      rule: Host(`lightsout-api.w11core.cc`) && PathPrefix(`/present`)
-      priority: 100
-      service: lightsout-present
+    lightsout-present-router:
+      rule: 'Host(`lightsout-api.w11core.cc`) && PathPrefix(`/present`)'
+      priority: 1000
+      service: lightsout-present-service
       middlewares:
+        - geoblock@docker
+        - crowdsec@docker
         - lightsout-present-strip
+      entryPoints:
+        - websecure
+      tls:
+        certResolver: cloudflare
+        domains:
+          - main: 'lightsout-api.w11core.cc'
   middlewares:
     lightsout-present-strip:
       stripPrefix:
         prefixes:
-          - /present
+          - '/present'
   services:
-    lightsout-present:
+    lightsout-present-service:
       loadBalancer:
         servers:
-          - url: http://host.docker.internal:3004
+          - url: 'http://host.docker.internal:3004'
+        passHostHeader: true
 ```
 
 3. Check it with `curl https://lightsout-api.w11core.cc/present/api/v1/health`.
