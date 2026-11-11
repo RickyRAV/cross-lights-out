@@ -8,5 +8,5 @@ console.log(`Present mode, API: ${url}`);
 spawn('expo', ['start', '--android', '--clear'], {
   stdio: 'inherit',
   shell: true,
-  env: { ...process.env, EXPO_PUBLIC_API_URL: url },
+  env: { ...process.env, EXPO_PUBLIC_API_URL: url, EXPO_PUBLIC_REMINDER_LEAD_MINUTES: '2' },
 }).on('exit', (code) => process.exit(code ?? 0));

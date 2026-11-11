@@ -3,7 +3,10 @@ import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
 import { useAuthStore } from '@/store/auth';
 
-export const REMINDER_LEAD_MS = 60 * 60 * 1000;
+// Present mode shortens this so the reminder shows up during a demo.
+const leadMinutes = Number(process.env.EXPO_PUBLIC_REMINDER_LEAD_MINUTES ?? 60);
+export const REMINDER_LEAD_MS = leadMinutes * 60 * 1000;
+const leadText = leadMinutes === 60 ? '1 hour' : `${leadMinutes} minutes`;
 const CHANNEL_ID = 'lockout-reminders';
 const ID_PREFIX = 'lockout-';
 
@@ -64,11 +67,11 @@ export function scheduleLockoutReminder(race: RaceResponse, now: number, unsent:
       content: unsent
         ? {
             title: 'Your prediction has not been sent yet',
-            body: `Your ${race.name} prediction is still waiting for a connection. Open Lights Out online before predictions close in 1 hour.`,
+            body: `Your ${race.name} prediction is still waiting for a connection. Open Lights Out online before predictions close in ${leadText}.`,
             data: { raceId: race.raceId },
           }
         : {
-            title: 'Predictions close in 1 hour',
+            title: `Predictions close in ${leadText}`,
             body: `Lock in your top 5 for the ${race.name} before it's too late.`,
             data: { raceId: race.raceId },
           },
