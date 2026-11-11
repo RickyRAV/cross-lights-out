@@ -1,0 +1,69 @@
+# Present mode: a second, separate backend for live demos, deployed from the
+# demo/presentation-mode branch. Own database, own port, never touches production.
+# Traefik routes lightsout-api.w11core.cc/present/* here, see demo/README.md.
+name: lightsout-present
+
+services:
+  db:
+    image: postgres:18-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: lightsout
+      POSTGRES_USER: lightsout
+      POSTGRES_PASSWORD: ${PRESENT_DB_PASSWORD:-lightsout-present}
+    volumes:
+      - present_pgdata:/var/lib/postgresql
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U lightsout -d lightsout']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      HOST: 0.0.0.0
+      PORT: 3000
+      LOG_LEVEL: info
+      RUN_MIGRATIONS_ON_START: 'true'
+      DATABASE_URL: postgresql://lightsout:${PRESENT_DB_PASSWORD:-lightsout-present}@db:5432/lightsout
+      JWT_SECRET: ${PRESENT_JWT_SECRET:-present-mode-only-not-a-production-secret}
+      JWT_ISSUER: https://lightsout-api.w11core.cc/present
+      JWT_AUDIENCE: lights-out-present
+      JOLPICA_BASE_URL: http://present:8080
+      RACE_CALENDAR_CACHE_TTL_HOURS: 24
+      GRADING_INTERVAL_MINUTES: 1
+      TRUST_PROXY: 'true'
+    ports:
+      - '3004:3000'
+    healthcheck:
+      test: ['CMD', 'wget', '--spider', '-q', 'http://127.0.0.1:3000/api/v1/health']
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 40s
+    depends_on:
+      db:
+        condition: service_healthy
+
+  present:
+    build:
+      context: .
+      dockerfile: demo/Dockerfile
+    restart: unless-stopped
+    environment:
+      API_URL: http://api:3000/api/v1
+      PGHOST: db
+      PGUSER: lightsout
+      PGDATABASE: lightsout
+      PGPASSWORD: ${PRESENT_DB_PASSWORD:-lightsout-present}
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  present_pgdata:

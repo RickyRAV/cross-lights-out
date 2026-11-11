@@ -61,5 +61,9 @@ export default tseslint.config(
     languageOptions: { sourceType: 'commonjs', globals: globals.node },
     rules: { '@typescript-eslint/no-require-imports': 'off' },
   },
+  {
+    files: ['apps/mobile/scripts/*.mjs'],
+    languageOptions: { globals: globals.node },
+  },
   prettier,
 );
